@@ -1,0 +1,19 @@
+{
+  "name": "smartaccounts",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "npx hardhat test"
+  },
+  "keywords": [],
+  "author": "Fernando Lopez",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^1.43.0",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.3.0",
+    "ethers": "^6.13.7",
+    "hardhat": "^2.23.0"
+  }
+}

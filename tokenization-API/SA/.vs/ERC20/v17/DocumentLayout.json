@@ -1,0 +1,197 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\controllers\\contract.controller.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\exposition\\controllers\\contract.controller.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\api\\api.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\exposition\\api\\api.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\services\\contracts.service.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\services\\contracts.service.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\main.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\main.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\bootstrap\\config.bootstrap.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\bootstrap\\config.bootstrap.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\__tests__\\contracts.service.test.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\__tests__\\contracts.service.test.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\contracts.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:contracts.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\controllers\\index.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\exposition\\controllers\\index.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\bootstrap\\contract.bootstrap.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\bootstrap\\contract.bootstrap.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\Contract API ERC20.postman_collection.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Contract API ERC20.postman_collection.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\middleware\\apiKey.middleware.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\exposition\\middleware\\apiKey.middleware.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "contracts.service.ts",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\services\\contracts.service.ts",
+              "RelativeDocumentMoniker": "src\\services\\contracts.service.ts",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\services\\contracts.service.ts",
+              "RelativeToolTip": "src\\services\\contracts.service.ts",
+              "ViewState": "AgIAAIUAAAAAAAAAAAAUwJgAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-04-29T10:31:43.812Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "index.ts",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\controllers\\index.ts",
+              "RelativeDocumentMoniker": "src\\exposition\\controllers\\index.ts",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\controllers\\index.ts",
+              "RelativeToolTip": "src\\exposition\\controllers\\index.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAB+AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-04-29T10:05:59.313Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "contract.bootstrap.ts",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\bootstrap\\contract.bootstrap.ts",
+              "RelativeDocumentMoniker": "src\\bootstrap\\contract.bootstrap.ts",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\bootstrap\\contract.bootstrap.ts",
+              "RelativeToolTip": "src\\bootstrap\\contract.bootstrap.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-04-29T09:35:09.015Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "config.bootstrap.ts",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\bootstrap\\config.bootstrap.ts",
+              "RelativeDocumentMoniker": "src\\bootstrap\\config.bootstrap.ts",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\bootstrap\\config.bootstrap.ts",
+              "RelativeToolTip": "src\\bootstrap\\config.bootstrap.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAABNAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-04-29T09:08:21.489Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "contracts.service.test.ts",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\__tests__\\contracts.service.test.ts",
+              "RelativeDocumentMoniker": "src\\__tests__\\contracts.service.test.ts",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\__tests__\\contracts.service.test.ts",
+              "RelativeToolTip": "src\\__tests__\\contracts.service.test.ts",
+              "ViewState": "AgIAAEAAAAAAAAAAAAAUwFEAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-04-29T09:07:20.862Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "api.ts",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\api\\api.ts",
+              "RelativeDocumentMoniker": "src\\exposition\\api\\api.ts",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\api\\api.ts",
+              "RelativeToolTip": "src\\exposition\\api\\api.ts",
+              "ViewState": "AgIAACMAAAAAAAAAAAAxwBwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-04-29T08:25:08.601Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "contract.controller.ts",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\controllers\\contract.controller.ts",
+              "RelativeDocumentMoniker": "src\\exposition\\controllers\\contract.controller.ts",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\controllers\\contract.controller.ts",
+              "RelativeToolTip": "src\\exposition\\controllers\\contract.controller.ts",
+              "ViewState": "AgIAAEUAAAAAAAAAAAAAAFwAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-04-29T08:19:06.225Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Contract API ERC20.postman_collection.json",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\Contract API ERC20.postman_collection.json",
+              "RelativeDocumentMoniker": "Contract API ERC20.postman_collection.json",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\Contract API ERC20.postman_collection.json",
+              "RelativeToolTip": "Contract API ERC20.postman_collection.json",
+              "ViewState": "AgIAAEwAAAAAAAAAAAAMwKsAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-04-29T08:15:30.444Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "apiKey.middleware.ts",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\middleware\\apiKey.middleware.ts",
+              "RelativeDocumentMoniker": "src\\exposition\\middleware\\apiKey.middleware.ts",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\exposition\\middleware\\apiKey.middleware.ts",
+              "RelativeToolTip": "src\\exposition\\middleware\\apiKey.middleware.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-04-29T08:14:30.501Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "main.ts",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\main.ts",
+              "RelativeDocumentMoniker": "src\\main.ts",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\src\\main.ts",
+              "RelativeToolTip": "src\\main.ts",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAACQAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-04-29T08:12:48.504Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "contracts.json",
+              "DocumentMoniker": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\contracts.json",
+              "RelativeDocumentMoniker": "contracts.json",
+              "ToolTip": "D:\\SMService\\BondProject\\SmartAccountsAPI\\ERC20\\contracts.json",
+              "RelativeToolTip": "contracts.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACQAAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-04-29T08:09:35.042Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

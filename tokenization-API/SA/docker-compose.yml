@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  sa:
+    build: .
+    ports:
+      - "4000:4000"
+    working_dir: /app
+    command: node dist/main.js

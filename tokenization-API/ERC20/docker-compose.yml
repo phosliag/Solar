@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  erc-20:
+    build: .
+    ports:
+      - "3000:3000"
+    working_dir: /app
+    command: node dist/main.js
