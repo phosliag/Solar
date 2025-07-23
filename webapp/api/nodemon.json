@@ -1,0 +1,7 @@
+{
+  "watch": ["src"],
+  "ext": ".ts, .js",
+  "exitcrash": false,  
+  "exec": "ts-node ./src/index.ts",
+  "restartable": "rs"
+}

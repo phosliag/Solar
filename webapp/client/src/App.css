@@ -1,0 +1,115 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.btn, .btn-pay-now, .btn-back {
+  border-radius: 0;
+  background: linear-gradient(90deg, var(--color-green-accent) 0%, var(--color-green-main) 100%);
+  color: #fff;
+  border: none;
+  padding: 0.75em 2.2em;
+  font-weight: 600;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 8px 0 rgba(60, 120, 60, 0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  outline: none;
+  letter-spacing: 0.5px;
+}
+
+.btn:hover, .btn-pay-now:hover, .btn-back:hover {
+  background: linear-gradient(90deg, var(--color-green-main) 0%, var(--color-green-accent) 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px 0 rgba(60, 120, 60, 0.18);
+  transform: translateY(-2px) scale(1.04);
+}
+
+.btn:active, .btn-pay-now:active, .btn-back:active {
+  background: var(--color-green-accent);
+  color: #fff;
+  box-shadow: 0 1px 4px 0 rgba(60, 120, 60, 0.10);
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.solar-panel-section {
+  width: 100%;
+  max-width: 900px;
+  margin: 1.5rem auto;
+  padding: 0.5em 0 1.5em 0;
+  border-bottom: 2px solid var(--color-green-accent);
+  background: var(--color-bg);
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+  text-align: left;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* Holder list table */
+.table-hl {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-green-soft, #f4f8f6);
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(60, 120, 60, 0.08);
+}
+
+.table-hl th, .table-hl td, .admin-table-header, .admin-table-cell {
+  padding: 14px 10px;
+  border-bottom: 1px solid var(--color-border, #d0e2d8);
+  text-align: center;
+  font-size: 1rem;
+}
+
+.table-hl th, .admin-table-header {
+  background: var(--color-green-accent, #388e3c);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.table-hl tr:last-child td, .table-hl tr:last-child th {
+  border-bottom: none;
+}
+
+.table-hl tr:nth-child(even) td {
+  background: var(--color-bg, #f8fafb);
+}
+
+@media (max-width: 768px) {
+  .table-hl, .table-hl thead, .table-hl tbody, .table-hl th, .table-hl td, .table-hl tr {
+    display: block;
+    width: 100%;
+  }
+  .table-hl th, .table-hl td {
+    text-align: left;
+    padding: 10px 6px;
+  }
+  .table-hl thead {
+    display: none;
+  }
+  .table-hl tr {
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-green-accent, #388e3c);
+  }
+  .table-hl td:before {
+    content: attr(data-label);
+    font-weight: bold;
+    display: block;
+    color: var(--color-green-accent, #388e3c);
+    margin-bottom: 4px;
+  }
+}

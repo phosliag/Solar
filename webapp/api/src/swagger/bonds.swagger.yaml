@@ -1,0 +1,854 @@
+openapi: 3.0.0
+info:
+  title: Bonds API
+  description: API endpoints for managing bonds and related operations
+  version: 1.0.0
+
+paths:
+  /bonds-user:
+    post:
+      summary: Get bonds by user
+      description: Retrieves bonds associated with a specific user
+      tags:
+        - Bonds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: ID of the user
+      responses:
+        '200':
+          description: Successfully retrieved user bonds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bond'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /bonds/{userId}:
+    get:
+      summary: Get all bonds for a user
+      description: Retrieves all bonds for a specific user ID
+      tags:
+        - Bonds
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+      responses:
+        '200':
+          description: Successfully retrieved bonds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bond'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+  /create:
+    post:
+      summary: Create a new bond
+      description: Creates a new bond in the system
+      tags:
+        - Bonds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BondInput'
+      responses:
+        '201':
+          description: Bond created successfully
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  /save:
+    post:
+      summary: Save bond draft
+      description: Saves a bond as a draft
+      tags:
+        - Bonds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BondDraft'
+      responses:
+        '201':
+          description: Bond draft saved successfully
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  /update/{id}:
+    put:
+      summary: Update a bond
+      description: Updates an existing bond by ID
+      tags:
+        - Bonds
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the bond to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BondUpdate'
+      responses:
+        '200':
+          description: Bond updated successfully
+        '404':
+          description: Bond not found
+        '500':
+          description: Internal server error
+
+  /addToMarket:
+    post:
+      summary: Add bond to retail market
+      description: Adds a bond to the retail market
+      tags:
+        - Retail Market
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetailMarketBond'
+      responses:
+        '201':
+          description: Bond added to market successfully
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  /getAllMarketBonds:
+    get:
+      summary: Get all retail market bonds
+      description: Retrieves all bonds available in the retail market
+      tags:
+        - Retail Market
+      responses:
+        '200':
+          description: Successfully retrieved market bonds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RetailMarketBond'
+        '500':
+          description: Internal server error
+
+  /bonds-issuer-tokens/{userId}:
+    get:
+      summary: Get issuer tokens and upcoming payments
+      description: Retrieves token list and upcoming payments for a specific issuer
+      tags:
+        - Issuer
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID of the issuer
+      responses:
+        '200':
+          description: Successfully retrieved issuer data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Token'
+                  upcomingPayments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+        '404':
+          description: Issuer not found
+        '500':
+          description: Internal server error
+
+  /bonds-issuer-pending/{userId}:
+    get:
+      summary: Get pending payments
+      description: Retrieves pending payments for a specific issuer
+      tags:
+        - Issuer
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID of the issuer
+      responses:
+        '200':
+          description: Successfully retrieved pending payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+        '404':
+          description: Issuer not found
+        '500':
+          description: Internal server error
+
+  /createTransferHistoric:
+    post:
+      summary: Create transfer ticket
+      description: Creates a new transfer history record
+      tags:
+        - Blockchain Transfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferTicket'
+      responses:
+        '201':
+          description: Transfer ticket created successfully
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  # /transferHistory:
+  #   get:
+  #     summary: Get transfer history
+  #     description: Retrieves the history of all transfers
+  #     tags:
+  #       - Blockchain Transfer
+  #     responses:
+  #       '200':
+  #         description: Successfully retrieved transfer history
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/TransferTicket'
+  #       '500':
+  #         description: Internal server error
+
+  /register-purchase:
+    post:
+      summary: Register a purchase
+      description: Register a new bond purchase by an investor
+      tags:
+        - Purchase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Purchase'
+      responses:
+        '201':
+          description: Purchase registered successfully
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  /register-issuer:
+    post:
+      summary: Register an issuer
+      description: Register a new bond issuer in the system
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssuerInput'
+      responses:
+        '201':
+          description: Issuer registered successfully
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  /register-investor:
+    post:
+      summary: Register an investor
+      description: Register a new investor in the system
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestorInput'
+      responses:
+        '201':
+          description: Investor registered successfully
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  /issuers:
+    get:
+      summary: Get all issuers
+      description: Retrieve a list of all registered issuers
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Successfully retrieved issuers list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Issuer'
+        '500':
+          description: Internal server error
+
+  /issuers/{id}:
+    get:
+      summary: Get issuer by ID
+      description: Retrieve a specific issuer's information
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the issuer
+      responses:
+        '200':
+          description: Successfully retrieved issuer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issuer'
+        '404':
+          description: Issuer not found
+        '500':
+          description: Internal server error
+
+  /users:
+    get:
+      summary: Get all purchase users
+      description: Retrieve a list of all users who have made purchases
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Successfully retrieved users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseUser'
+        '500':
+          description: Internal server error
+
+  /investors:
+    get:
+      summary: Get all investors
+      description: Retrieve a list of all registered investors
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Successfully retrieved investors list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Investor'
+        '500':
+          description: Internal server error
+
+  /investors/{issuerId}:
+    get:
+      summary: Get investors by issuer
+      description: Retrieve all investors associated with a specific issuer
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: issuerId
+          required: true
+          schema:
+            type: string
+          description: ID of the issuer
+      responses:
+        '200':
+          description: Successfully retrieved investors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Investor'
+        '404':
+          description: Issuer not found
+        '500':
+          description: Internal server error
+
+  /login:
+    post:
+      summary: User login
+      description: Authenticate a user and get access token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Internal server error
+
+  /bonds-investor-tokens/{userId}:
+    get:
+      summary: Get investor tokens and payments
+      description: Retrieve token list and upcoming payments for a specific investor
+      tags:
+        - Investor
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID of the investor
+      responses:
+        '200':
+          description: Successfully retrieved investor data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Token'
+                  upcomingPayments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+        '404':
+          description: Investor not found
+        '500':
+          description: Internal server error
+
+  /users-balance:
+    post:
+      summary: Update user balance
+      description: Update user balance using faucet
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BalanceFaucetInput'
+      responses:
+        '200':
+          description: Balance updated successfully
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+
+  /update-payment/{userId}/{bondId}/{network}:
+    put:
+      summary: Update payment status
+      description: Update the payment status for a specific bond and user
+      tags:
+        - Payments
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+        - in: path
+          name: bondId
+          required: true
+          schema:
+            type: string
+          description: ID of the bond
+        - in: path
+          name: network
+          required: true
+          schema:
+            type: string
+          description: Network identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentUpdateInput'
+      responses:
+        '200':
+          description: Payment updated successfully
+        '404':
+          description: Payment not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Bond:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        issuer:
+          type: string
+        faceValue:
+          type: number
+        maturityDate:
+          type: string
+          format: date
+        interestRate:
+          type: number
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    BondInput:
+      type: object
+      required:
+        - name
+        - issuer
+        - faceValue
+        - maturityDate
+        - interestRate
+      properties:
+        name:
+          type: string
+        issuer:
+          type: string
+        faceValue:
+          type: number
+        maturityDate:
+          type: string
+          format: date
+        interestRate:
+          type: number
+
+    BondDraft:
+      type: object
+      properties:
+        name:
+          type: string
+        issuer:
+          type: string
+        faceValue:
+          type: number
+        maturityDate:
+          type: string
+          format: date
+        interestRate:
+          type: number
+        status:
+          type: string
+          enum: [draft]
+
+    BondUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        faceValue:
+          type: number
+        maturityDate:
+          type: string
+          format: date
+        interestRate:
+          type: number
+        status:
+          type: string
+
+    RetailMarketBond:
+      type: object
+      properties:
+        bondId:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: number
+        status:
+          type: string
+
+    Token:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        symbol:
+          type: string
+        totalSupply:
+          type: number
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+        bondId:
+          type: string
+        amount:
+          type: number
+        dueDate:
+          type: string
+          format: date
+        status:
+          type: string
+        type:
+          type: string
+          enum: [interest, principal]
+
+    TransferTicket:
+      type: object
+      properties:
+        id:
+          type: string
+        fromAddress:
+          type: string
+          description: Source blockchain address
+        toAddress:
+          type: string
+          description: Destination blockchain address
+        amount:
+          type: number
+          description: Amount of tokens transferred
+        tokenAddress:
+          type: string
+          description: Address of the token contract
+        transactionHash:
+          type: string
+          description: Blockchain transaction hash
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        timestamp:
+          type: string
+          format: date-time
+        networkId:
+          type: string
+          description: ID of the blockchain network
+      required:
+        - fromAddress
+        - toAddress
+        - amount
+        - tokenAddress
+
+    Purchase:
+      type: object
+      required:
+        - userId
+        - bondId
+        - amount
+      properties:
+        userId:
+          type: string
+        bondId:
+          type: string
+        amount:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    IssuerInput:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        walletAddress:
+          type: string
+
+    InvestorInput:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        walletAddress:
+          type: string
+
+    Issuer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        walletAddress:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PurchaseUser:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        bondId:
+          type: string
+        amount:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    Investor:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        walletAddress:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    LoginInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            email:
+              type: string
+            role:
+              type: string
+
+    BalanceFaucetInput:
+      type: object
+      required:
+        - userId
+        - amount
+      properties:
+        userId:
+          type: string
+        amount:
+          type: number
+        network:
+          type: string
+
+    PaymentUpdateInput:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        transactionHash:
+          type: string 

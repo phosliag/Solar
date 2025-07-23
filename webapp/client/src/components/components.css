@@ -1,0 +1,188 @@
+body {
+  background-color: var(--color-bg);
+  font-family: Arial, sans-serif;
+}
+h2 {
+  align-self: center;
+  color: var(--color-green-main);
+}
+h-control {
+  color: var(--color-green-main);
+}
+h4, h5 {
+  color: var(--color-green-accent);
+}
+strong {
+  color: var(--color-text);
+}
+ul {
+  margin-left: 100px;
+  text-align: left;
+}
+li {
+  list-style-position: outside !important;
+}
+.wallet-address {
+  padding: 10px;
+  color: var(--color-text);
+  /* background: var(--color-green-soft); */
+  /* border: 1px solid var(--color-border); */
+  border-radius: 4px;
+}
+.section-title {
+  color: var(--color-green-main);
+  font-weight: bold;
+}
+.card {
+  max-width: 1000px;
+  align-items: start;
+  margin: 1rem auto;
+  padding: 1.5rem;
+  background: var(--color-bg);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px 0 var(--color-border);
+  border: 1px solid var(--color-green-soft);
+}
+.bond-card {
+  align-items: start;
+  margin: 1rem auto;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(168, 230, 207, 0.2);
+  border-radius: 8px;
+  background: var(--color-green-secondary);
+}
+.bond-card .card-body ul {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  list-style-position: inside;
+}
+
+.copy-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  border: 2px solid var(--color-green-accent);
+  border-radius: 4px;
+  background-color: var(--color-green-soft);
+  font-size: 16px;
+  cursor: pointer;
+  word-wrap: break-word;
+  color: var(--color-text);
+}
+
+.copy-button {
+  font-size: 18px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.copy-label:hover .copy-button {
+  color: var(--color-green-accent);
+}
+
+.copy-button:hover {
+  transform: scale(1.1);
+}
+
+.wallet-box {
+  padding: 10px;
+  color: var(--color-text);
+  /* background: var(--color-green-soft);
+  border: 1px solid var(--color-border); */
+  border-radius: 4px;
+}
+.section-title {
+  color: var(--color-green-main);
+  font-weight: bold;
+}
+.pending-payments {
+  color: #388e3c;
+  font-weight: bold;
+}
+
+/* .btn-pay-now {
+  background-color: var(--color-green-accent);
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 30px;
+  box-shadow: 0 2px 8px rgba(168, 230, 207, 0.25);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.btn-pay-now:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px rgba(168, 230, 207, 0.18);
+}
+
+.btn-back {
+  background-color: var(--color-green-main);
+  color: var(--color-text);
+  font-weight: bold;
+  align-self: flex-start;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 30px;
+  box-shadow: 0 2px 8px rgba(168, 230, 207, 0.25);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.btn-back:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px rgba(168, 230, 207, 0.18);
+} */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-green-soft);
+  margin-top: 10px;
+}
+
+/* Estilos de los popup de confirmacion */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(168, 230, 207, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.popup {
+  background: var(--color-bg);
+  padding: 20px;
+  border-radius: 8px;
+  width: 50%;
+  max-width: 600px;
+  text-align: right;
+  border: 2px solid var(--color-green-accent);
+  box-shadow: 0 4px 16px 0 var(--color-border);
+}
+.popup-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Forzar hover pastel en todos los botones, incluso si tienen clases Bootstrap */
+button:hover, .btn:hover, .btn-pay-now:hover, .btn-back:hover, .btn-rad:hover {
+  background: var(--color-green-accent) !important;
+  color: #fff !important;
+  border-color: var(--color-green-accent) !important;
+}
+
+/* Títulos pastel por defecto */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-green-main) !important;
+}
+
+.section-title {
+  color: var(--color-green-main) !important;
+  font-weight: bold;
+}
