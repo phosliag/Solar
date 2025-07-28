@@ -1,8 +1,9 @@
-
+// scripts/deploy.ts
+// deploy para conseguir el bytecode de Solar.sol
 import { ignition, network } from "hardhat";
 import fs from "fs";
 import path from "path";
-import accountModule from "./modules/Account";
+import solarModule from "./modules/Solar";
 import { AbiCoder } from "ethers";
 import dotenvx from "@dotenvx/dotenvx";
 import hre from "hardhat";
@@ -10,12 +11,12 @@ dotenvx.config();
 
 async function main() {
 
-  const deployment = await ignition.deploy(accountModule);
-  const deployedAddress = deployment.account.target;
-  console.log(`✅ Account deployed at: ${deployedAddress}`);
+  const deployment = await ignition.deploy(solarModule);
+  const deployedAddress = deployment.solar.target;
+  console.log(`✅ Solar deployed at: ${deployedAddress}`);
 
 
-  const artifact = await hre.artifacts.readArtifact("Dentist");
+  const artifact = await hre.artifacts.readArtifact("SOLAR");
 
   const abiCoder = new AbiCoder();
 
@@ -25,7 +26,7 @@ const constructorArgs = abiCoder.encode(["address"], [process.env.API_WALLET_PUB
   const creationBytecode = artifact.bytecode + constructorArgs.slice(2);
 
   // output
-  const outputPath = path.join(__dirname, "../deployed/dentistBytecode.json");
+  const outputPath = path.join(__dirname, "../deployed/solarcontract.json");
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   // 
@@ -35,7 +36,7 @@ const constructorArgs = abiCoder.encode(["address"], [process.env.API_WALLET_PUB
       {
         contractName: artifact.contractName,
         network: network.name,
-        accountAddress: deployedAddress,
+        solarAddress: deployedAddress,
         creationBytecode,
       },
       null,
@@ -50,4 +51,4 @@ main().catch((err) => {
   console.error("❌ Deployment failed:", err);
   process.exit(1);
 });
-// npx hardhat run ignition/Dentist.ts --network <NAME_OF_NETWORK> 
+// npx hardhat run ignition/Solar.ts --network <NAME_OF_NETWORK> 

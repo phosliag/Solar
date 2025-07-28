@@ -1,5 +1,5 @@
 // scripts/deploy.ts
-
+// deploy para conseguir el bytecode de Account.sol
 import { ignition, network } from "hardhat";
 import fs from "fs";
 import path from "path";

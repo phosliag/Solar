@@ -21,18 +21,18 @@ const config: HardhatUserConfig = {
     artifacts: "./artifacts",
   },
   networks: {
-    bscTestnet: {
-      url: "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
-      accounts: process.env.ADMIN_WALLET_PRIV_KEY ? [process.env.ADMIN_WALLET_PRIV_KEY] : [],
-      gasPrice: 400000000000,
-      timeout: 120000, 
-    },
-    amoy: {
-      url: "https://polygon-amoy.drpc.org",
-      accounts: process.env.ADMIN_WALLET_PRIV_KEY ? [process.env.ADMIN_WALLET_PRIV_KEY] : [],
-      gasPrice: 400000000000,
-      timeout: 300000, 
-    },
+    // bscTestnet: {
+    //   url: "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
+    //   accounts: process.env.ADMIN_WALLET_PRIV_KEY ? [process.env.ADMIN_WALLET_PRIV_KEY] : [],
+    //   gasPrice: 400000000000,
+    //   timeout: 120000, 
+    // },
+    // amoy: {
+    //   url: "https://polygon-amoy.drpc.org",
+    //   accounts: process.env.ADMIN_WALLET_PRIV_KEY ? [process.env.ADMIN_WALLET_PRIV_KEY] : [],
+    //   gasPrice: 400000000000,
+    //   timeout: 300000, 
+    // },
      alastria: {
       url: "http://108.142.237.13:8545",
       accounts: process.env.ADMIN_WALLET_PRIV_KEY ? [process.env.ADMIN_WALLET_PRIV_KEY] : [],
