@@ -8,20 +8,44 @@ import { useNavigate } from "react-router-dom";
 const getPanelProduction = (plateId: string) => {
   const text = csvText;
   const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+  
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  yesterday.setHours(0, 0, 0, 0); // Ajusta a medianoche
+  
+  const startDate = new Date(yesterday);
+  startDate.setDate(startDate.getDate() - 29); // 30 días incluyendo ayer
+
   const data = lines.slice(1)
     .map(line => line.split(","))
     .filter(cols => {
       if (cols.length < 26) return false;
       return cols[0].trim().toLowerCase() === plateId.trim().toLowerCase();
     })
-    .map(cols => ({
-      date: cols[1],
-      total: cols.slice(2).reduce((sum, val) => sum + parseFloat(val || "0"), 0)
-    }));
-  const sorted = data.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30).reverse();
+    .map(cols => {
+      const date = new Date(cols[1]); // Parsear fecha del CSV
+      return {
+        date: date,
+        total: cols.slice(2).reduce((sum, val) => sum + parseFloat(val || "0"), 0)
+      };
+    })
+    .filter(entry => {
+      return entry.date >= startDate && entry.date <= yesterday;
+    });
+
+  const sorted = data.sort((a, b) => a.date.getTime() - b.date.getTime()); // Orden ascendente por fecha
   const avg = sorted.length > 0 ? sorted.reduce((sum, d) => sum + d.total, 0) / sorted.length : null;
-  return { sorted, avg };
+
+  // Convertir fechas nuevamente a string si es necesario
+  const formatted = sorted.map(entry => ({
+    date: entry.date.toISOString().split("T")[0],
+    total: entry.total
+  }));
+
+  return { sorted: formatted, avg };
 };
+
 
 const MyPanels = () => {
   const dispatch = useAppDispatch();
@@ -36,6 +60,7 @@ const MyPanels = () => {
 
   // Filtrar paneles cuyo owner sea igual al _id del usuario logueado
   const panels = user && user._id ? allPanels.filter((panel: any) => panel.owner === user._id) : [];
+  console.log(panels)
 
   return (
     <div className="container mt-3">
@@ -47,12 +72,12 @@ const MyPanels = () => {
         {panels.length === 0 ? (
           <div>No tienes placas compradas.</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '2rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', overflowX: 'hidden', paddingBottom: '1rem' }}>
             {panels.map((panel: any) => {
               const { sorted, avg } = getPanelProduction(panel.reference || panel._id);
               return (
                 <div key={panel._id} className="mb-5" style={{ minWidth: 500, width: "100%", flex: '0 0 auto', border: '1px solid #eee', borderRadius: 8, padding: 24 }}>
-                  <h4>{panel.name || panel.reference || panel._id} - {panel.reference}</h4>
+                  <h4 onClick={() => navigate(`/panel-details`,  { state: { panelData: panel} })}>{panel.name || panel.reference || panel._id} - {panel.reference}</h4>
                   {avg !== null ? (
                     <>
                       <div><strong>Media diaria:</strong> <em>{avg.toFixed(2)} kWh</em></div>

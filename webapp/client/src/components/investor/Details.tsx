@@ -173,7 +173,7 @@ const BondDetails = () => {
         `}
       </style>
       <div className="solar-panel-section mt-3 p-4">
-        <h2 className="mb-4 text-start">{solarPanel.name}</h2>
+        <h2 className="mb-4 text-center">Panel "{solarPanel.name}"</h2>
 
         {/* <div className="mb-3">
           <h4 className="text-primary text-start" style={{ marginLeft: "5rem" }}>
@@ -271,13 +271,13 @@ const BondDetails = () => {
                   </div>
                 </div>
               )}
-              <h2 className="text-primary mb-4" style={{ textAlign: "left" }}>
+              <h2 className="mb-4" style={{ textAlign: "left" }}>
                 BUY TOKEN
               </h2>
 
               <div className="row d-flex justify-content-center align-items-center">
-                <div className="col-sm-6 mb-3">
-                  <label htmlFor="userId" className="form-label">
+                <div className="col-sm-6 mb-3 text-start">
+                  <label htmlFor="userId" className="form-label text-start">
                     User ID:
                   </label>
                   <input
@@ -285,13 +285,14 @@ const BondDetails = () => {
                     id="userId"
                     name="userId"
                     className="form-control bg-form"
-                    placeholder={`Id`}
+                    placeholder="Id"
                     value={user.email}
                     disabled
                   />
                 </div>
-                <div className="col-sm-6 mb-3">
-                  <label htmlFor="reference" className="form-label">
+
+                <div className="col-sm-6 mb-3 text-start">
+                  <label htmlFor="reference" className="form-label text-start">
                     Token Selection:
                   </label>
                   <input
@@ -303,6 +304,7 @@ const BondDetails = () => {
                   />
                 </div>
               </div>
+
               <div className="popup-actions mt-5" style={{ textAlign: "center" }}>
                 <button className="btn btn-pay-now" onClick={handleConfirmBuy}>
                   CONFIRM

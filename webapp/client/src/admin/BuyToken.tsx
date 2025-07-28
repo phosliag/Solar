@@ -17,7 +17,7 @@ const BuyToken = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const registeredPanels = useAppSelector((state) => state.solarPanel.panels);
-  const retailMktBonds = useAppSelector((state) => state.solarPanel.retailMarketPanels);
+  const retailPanels = useAppSelector((state) => state.solarPanel.retailMarketPanels);
   const investors = useAppSelector((state) => state.user.investors);
 
   const [showPopupUser, setShowPopupUser] = useState(false); // State to toggle popup visibility
@@ -114,22 +114,22 @@ const BuyToken = () => {
 
           <div className="col-sm-6 mb-3">
             <label htmlFor="userId" className="form-label">
-              User ID:
+              User Wallet:
             </label>
             <input
               type="text"
               id="userId"
               name="userId"
               className="form-control bg-form"
-              placeholder={`Username`}
+              placeholder={`Wallet address`}
               onChange={handleData}
               onBlur={handleUser}
             />
           </div>
           {errorData && (
             <p className="text-danger" style={{ fontSize: "13px", marginLeft: "10px" }}>
-              User doesn't exists.
-              <button type="button" className="btn btn-link" onClick={() => setShowPopupUser(true)}>Crear</button>
+              User wallet doesn't exists.
+              <button type="button" className="btn-link" onClick={() => setShowPopupUser(true)}>Crear</button>
             </p>
           )}
           <div className="col-sm-6 mb-3">
@@ -146,10 +146,10 @@ const BuyToken = () => {
                 Select token
               </option>
               {!errorMessage &&
-                retailMktBonds?.map((bond) => {
+                registeredPanels?.map((panel) => {
                   return (
-                    <option key={bond._id} value={bond.bondName}>
-                      {bond.bondName}
+                    <option key={panel._id} value={panel.name}>
+                      {panel.name}
                     </option>
                   );
                 })}

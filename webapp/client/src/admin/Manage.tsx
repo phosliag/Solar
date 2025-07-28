@@ -42,7 +42,7 @@ const Manage = () => {
           <tbody>
             {panels?.map((panel: SolarPanel, index: number) => (
               <tr key={index}>
-                <td className="p-3 fst-italic">{panel.name}</td>
+                <td className="p-3 fst-italic" onClick={() => navigate(`/panel-details`,  { state: { panelData: panel} })}>{panel.name}</td>
                 <td className="p-3">{panel.state}</td>
                 <td className="p-3 fst-italic">{panel.owner}</td>
               </tr>

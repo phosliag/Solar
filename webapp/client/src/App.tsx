@@ -16,6 +16,7 @@ import InvestmentWallet from "./components/investor/InvestmentWallet";
 import Admin from "./admin/Admin";
 import Lux from "./admin/ElectricityPrice";
 import MyPanels from "./components/investor/MyPanels";
+import PanelDetails from "./components/PanelDetais";
 
 function App() {
   return (
@@ -32,10 +33,11 @@ function App() {
       <Route path="/payment-management" element={<PaymentManagement />} />
       <Route path="/investor-dash" element={<Oportunities />} />
       <Route path="/investor-wallet" element={<InvestmentWallet />} />
-      <Route path="/bond-details/:id" element={<BondDetails />} />
+      <Route path="/purchase-details/:id" element={<BondDetails />} />
       <Route path="/my-panels" element={<MyPanels />} />
       <Route path="/admin-dash" element={<Admin />} />
       <Route path="/lux" element={<Lux />} />
+      <Route path="/panel-details" element={<PanelDetails />} />
     </Routes>
   );
 }

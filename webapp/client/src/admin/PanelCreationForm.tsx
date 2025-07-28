@@ -89,7 +89,7 @@ const PanelCreationForm = () => {
   };
 
   useEffect(() => {
-    document.title = "Register Bond";
+    document.title = "Register Panel";
     if (errorMessage !== null) {
       console.log(errorMessage);
     } else {
@@ -129,7 +129,7 @@ const PanelCreationForm = () => {
         <form className="container mt-4" style={{ textAlign: "left" }} onSubmit={handleSubmit}>
           <h2 style={{ textAlign: "center" }}>Solar Panel Creation</h2>
 
-          {/* Section 1.1: Basic Bond Information */}
+          {/* Section 1.1: Basic Panel Information */}
           <div className="container-md row m-3">
             <h3>Panel Information</h3>
             <div className="row">
@@ -196,6 +196,7 @@ const PanelCreationForm = () => {
                   id="location"
                   name="location"
                   className="form-control bg-form"
+                  placeholder="E.g., Bilbao"
                   value={formData.location}
                   min={new Date().toISOString().split("T")[0]}
                   onChange={handleChange}
@@ -230,6 +231,7 @@ const PanelCreationForm = () => {
                   id="price"
                   name="price"
                   className="form-control bg-form"
+                  placeholder="E.g., 1000€"
                   value={formData.price}
                   onChange={handleChange}
                 />
@@ -264,6 +266,7 @@ const PanelCreationForm = () => {
                   id="stimatedProduction"
                   name="stimatedProduction"
                   className="form-control bg-form"
+                  placeholder="E.g., 7 kWh"
                   value={formData.stimatedProduction}
                   onChange={handleChange}
                 />
@@ -289,13 +292,10 @@ const PanelCreationForm = () => {
         {showPopup && (
           <div className="popup-overlay">
             <div className="popup">
-              {/* <h2 className="text-primary mb-5" style={{ textAlign: 'center' }}>
-                TOKENIZED BOND CREATION
-              </h2> */}
 
               <h4 className="fst-italic text-secondary">Final Summary</h4>
 
-              <h5 className="fw-bold fst-italic mt-4" style={{ textAlign: 'left' }}>Bond Details:</h5>
+              <h5 className="fw-bold fst-italic mt-4" style={{ textAlign: 'left' }}>Panel Details:</h5>
               <ul>
                 <li>
                   <strong>Panel Name:</strong> <em>{formData.name}</em>
@@ -346,7 +346,7 @@ const PanelCreationForm = () => {
                   {loading ? (
                     <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                   ) : (
-                    "Create bond"
+                    "Create panel"
                   )}
                 </button>
                 <button className="btn btn-back" onClick={() => setShowPopup(false)}>
@@ -360,19 +360,19 @@ const PanelCreationForm = () => {
           <div className="popup-overlay">
             <div className="popup" style={{ width: '600px' }}>
               <h2 className="text-success mb-4" style={{ textAlign: "center" }}>
-                Successful Bond Creation!
+                Successful Panel Creation!
               </h2>
               <div className="purchase-details mb-4">
-                <h4 className="text-primary mb-3">Bond Details:</h4>
+                <h4 className="text-primary mb-3">Panel Details:</h4>
                 <ul className="list-unstyled">
                   <li className="mb-3">
-                    <strong>Bond Name:</strong> <em>{formData.name}</em>
+                    <strong>Name:</strong> <em>{formData.name}</em>
                   </li>
                   <li className="mb-3">
-                    <strong>Create Company Bond Message:</strong> <em>{transactionMessages.createCompanyBond}</em>
+                    <strong>Create Company Message:</strong> <em>{transactionMessages.createCompanyBond}</em>
                   </li>
                   <li className="mb-3">
-                    <strong>Mint Bond Message:</strong> <em>{transactionMessages.mintBond}</em>
+                    <strong>Mint Message:</strong> <em>{transactionMessages.mintBond}</em>
                   </li>
                 </ul>
               </div>

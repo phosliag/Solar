@@ -26,7 +26,7 @@ const PanelCard: React.FC<{ solarPanel: SolarPanel, user: Investor }> = ({ solar
           </li>
         </ul>
 
-        <button className="btn btn-pay-now" onClick={() => navigate(`/bond-details/${solarPanel._id}`,  { state: { solarPanel, user } })}>
+        <button className="btn btn-pay-now" onClick={() => navigate(`/purchase-details/${solarPanel._id}`,  { state: { solarPanel, user } })}>
           See More
         </button>
       </div>

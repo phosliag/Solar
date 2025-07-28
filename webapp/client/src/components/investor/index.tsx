@@ -28,7 +28,7 @@ const Oportunities = () => {
             <button className="btn btn-back" onClick={() => navigate("/user-access")}>Log out</button>
           </div>
           <div className="container-md d-flex flex-column align-items-center mr-3 ml-3">
-            <h1 className="m-5 align-self-start" style={{ color: "var(--color-green-main)" }}>List of Opportunities:</h1>
+            <h1 className="m-5 align-self-start" style={{ color: "var(--color-green-main)" }}>Available Panels :</h1>
             <div className="row">
               {panels && panels.filter(panel => !panel.owner).length > 0 ? (
                 panels.filter(panel => !panel.owner).map((panel) => (
