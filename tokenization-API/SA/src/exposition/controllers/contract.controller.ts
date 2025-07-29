@@ -75,7 +75,7 @@ export async function executeContractMethodController(req: Request): Promise<App
 }
 
 
-export async function createAccountMultiple(req: Request): Promise<AppResult> {   
+export async function createAccount(req: Request): Promise<AppResult> {   
 
     const contractName: string = "AccountFactory";
     const contractAddress: string = config.CONTRACT.ADDRESS || req.params.address;
@@ -98,57 +98,41 @@ export async function createAccountMultiple(req: Request): Promise<AppResult> {
 
     const bytecode: string = config.BYTECODE;
 
-
-    const salt: string = args[0] || "DEFAULT";  
+    const salt: string = args[0] || "DEFAULT"; 
     const encoded = encodeBytes32String(salt);
+
 
     const newArgs: any[] = [encoded, bytecode];
     let network = "ALASTRIA";
     initContractsService(logger, contracts, config, "ALASTRIA" );
     const resultAlastria: ContractTransactionResponse | ContractTransactionReceipt | null = await executeContractMethod(contractName, contractAddress, methodName, newArgs, options, network);
+    try {
+
     if (resultAlastria && 'logs' in resultAlastria && resultAlastria.logs.length > 0) {
         address = resultAlastria.logs[0].address;
         transactionHash = resultAlastria.hash;      
         logger.info(`account alastri: ${resultAlastria.logs[0].address}`);       
     } else {
-        logger.warn("No logs returned from Alastria deployment.");      
+        logger.warn("No logs returned from Alastria deployment.");     
+        return {
+            statusCode: 500,
+            body: {
+                message: "Transaction failed",
+                accounts: results,
+            },
+        };
     }
 
-    results.push({
-        network: "ALASTRIA",
-        address,
-        transactionHash        
-    });
-
-    try {
-        logger.info(`CREATING IN amoy`);
-        initContractsService(logger, contracts, config, "AMOY");
-        network = "AMOY"
-        const resultAmoy: ContractTransactionResponse | ContractTransactionReceipt | null =
-            await executeContractMethod(contractName, contractAddress, methodName, newArgs, options, network);
-
-        let addressAmoy: string | null = null;
-        let transactionHashAmoy: string | null = null;
-        let timestampAmoy: string | null = null;
-
-        if (resultAmoy && 'logs' in resultAmoy && resultAmoy.logs.length > 0) {
-            addressAmoy = resultAmoy.logs[0].address;
-            transactionHashAmoy = resultAmoy.hash;
-            logger.info(`account amoy: ${addressAmoy}`);
-        } else {
-            logger.warn("No logs returned from Amoy deployment.");
-        }
-
         results.push({
-            network: "AMOY",
-            address: addressAmoy,
-            transactionHash: transactionHashAmoy            
+            network: "ALASTRIA",
+            address,
+            transactionHash        
         });
 
         return {
             statusCode: 201,
             body: {
-                message: "Transactions executed successfully",
+                message: "Transaction executed successfully",
                 accounts: results,
             },
         };
@@ -163,7 +147,7 @@ export async function createAccountMultiple(req: Request): Promise<AppResult> {
                 accounts: results,
             },
         };
-    }        
+    }   
 
 }
 
