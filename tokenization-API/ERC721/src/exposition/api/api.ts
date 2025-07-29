@@ -1,6 +1,6 @@
 import express, { Express, Request, Response } from "express";
 import cors from 'cors';
-import { callContractMethodController, executeContractMethodController, createAccount, createIndividualAccountRetry } from "../controllers/contract.controller";
+import { callContractMethodController, executeContractMethodController, transferNFT, returnNFT, bridge, burn, createNFT, requestTransfer, NFTbalance, getFaucetBalance, faucet, requestStable } from "../controllers/contract.controller";
 import handleControllerCall from "../controllers";
 
 import Logger from "../../helpers/logger.helper";
@@ -35,7 +35,7 @@ export default async function startApi(
   setupApi();
 
   logger.info("STARTING API");
-  const appPort = config.PORT || 4000;
+  const appPort = config.PORT || 3000;
   app.listen(appPort, '0.0.0.0');
   logger.info(`Express server running on port ${appPort}...`);
 }
@@ -70,11 +70,9 @@ function setupApi() {
 
 function manageMethodGet(method: string): (req: Request, res: Response, logger: Logger) => Promise<any> {
     switch (method) {
+       
         case "":
             return callContractMethodController;
-
-        case "":
-            return createIndividualAccountRetry;
 
         default:
             return callContractMethodController;
@@ -83,9 +81,23 @@ function manageMethodGet(method: string): (req: Request, res: Response, logger: 
 
 function manageMethodPost(method: string): (req: Request, res: Response, logger: Logger) => Promise<any> {
     switch (method) {
-        case "createAccount":
-            return createAccount;        
-
+        case "createNFT":
+            return createNFT;
+        case "NFTBalance":
+            return NFTbalance;
+        case "transferNFT":
+            return transferNFT;
+        case "returnNFT":
+            return returnNFT; 
+        case "requestTransfer":
+            return requestTransfer;        
+        case "faucet":
+            return faucet;
+        case "tokenBalance":
+            return getFaucetBalance;
+        case "requestStable":
+            return requestStable;
+              
         default:
             return executeContractMethodController;
     }

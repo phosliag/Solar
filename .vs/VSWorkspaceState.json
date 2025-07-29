@@ -1,0 +1,17 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\tokenization-API",
+    "\\tokenization-API\\ERC721",
+    "\\tokenization-API\\ERC721\\src",
+    "\\tokenization-API\\ERC721\\src\\bootstrap",
+    "\\tokenization-API\\ERC721\\src\\exposition",
+    "\\tokenization-API\\ERC721\\src\\exposition\\api",
+    "\\tokenization-API\\ERC721\\src\\exposition\\controllers",
+    "\\tokenization-API\\SA\\src",
+    "\\tokenization-API\\SA\\src\\exposition",
+    "\\tokenization-API\\SA\\src\\exposition\\middleware"
+  ],
+  "SelectedNode": "\\tokenization-API\\ERC721\\contracts.json",
+  "PreviewInSolutionExplorer": false
+}

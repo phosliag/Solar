@@ -174,10 +174,7 @@ export async function initContractsService(_logger: Logger, _contracts: Contract
 function manageNetwork(method: string): string {
     switch (method) {
         case "ALASTRIA":
-            return config.NETWORK.ALASTRIA;
-
-        case "AMOY":
-            return config.NETWORK.POLYGON;
+            return config.NETWORK.ALASTRIA;  
 
         default:
             return config.NETWORK.ALASTRIA;
