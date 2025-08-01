@@ -5,6 +5,7 @@ import { useBlockchainService } from '../services/blockchain.service'
 import { handleTransactionError, handleTransactionSuccess } from "../services/trx.service";
 import { CREATE_ACCOUNT_MULTIPLE } from "../utils/Constants";
 import { useApiBridge } from "../services/api-bridge.service";
+import { createAccount } from "../services/api-smart-account.service";
 /**
  * Obtener todos los usuarios
  */
@@ -72,34 +73,31 @@ export const registerInvestor = async (req: express.Request, res: express.Respon
 
     if (!newInvestor) return;
     const foundInvestor = await getInvestorByEmail(investor.email);
-    const foundInvestorNetwork = foundInvestor.get('blockchainNetwork');
-    console.log('InvestorNetwork', foundInvestorNetwork);
     foundInvestorId = foundInvestor.get('_id').toString();
-    console.log('InvestorId', foundInvestorId);
+    console.log('InvestorId', foundInvestor, foundInvestorId);
 
     let response = null;
     try {
-      response = await createCompany(foundInvestorId);
-      for (const account of response.accounts) {
+      response = await createAccount(foundInvestorId);
+      
         await handleTransactionSuccess(
           foundInvestorId,
-          account.network.toUpperCase(),
+          response.accounts[0].network.toUpperCase(),
           CREATE_ACCOUNT_MULTIPLE,
-          account
+          response.accounts[0]
         );
          // Llamar al faucet para la nueva cuenta
-         await useApiBridge.faucet(account.address, 10);
-         console.log("Faucet realizado para la cuenta:", account.address);
-      }
+        //  await useApiBridge.faucet(response.accounts[0].address, 10);
+        //  console.log("Faucet realizado para la cuenta:", response.accounts[0].address);
+    
     } catch (error) {
-      for (const account of response.accounts) {
         await handleTransactionError(
           foundInvestorId,
-          account.network.toUpperCase(),
+          response.accounts[0].network.toUpperCase(),
           CREATE_ACCOUNT_MULTIPLE,
           error
         );
-      }
+      
       console.log('Error BlockchainAcc', error)
       res.status(500).json({ error: "Error al crear cuenta en blockchain", message: error.message });
       await deleteInvestorById(foundInvestorId);
@@ -108,7 +106,7 @@ export const registerInvestor = async (req: express.Request, res: express.Respon
     }
 
     // ¡¡¡ IMPORTANTE !!! Revisar con petre
-    const updatedInvestor = await updateInvestorById(foundInvestorId, { walletAddress: response.address, accounts: response.accounts });
+    const updatedInvestor = await updateInvestorById(foundInvestorId, { walletAddress: response.accounts[0].address, accounts: response.accounts });
 
     console.log(updatedInvestor);
     res.status(201).json(updatedInvestor);

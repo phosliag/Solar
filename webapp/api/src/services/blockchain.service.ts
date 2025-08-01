@@ -66,9 +66,9 @@ export const useBlockchainService = () => {
   };
 
   // Crear un bono (similar al método createBond en Angular)
-  const createCompanyBond = async (bondName: string, bondSymbol: string, bondPrice: number, bondWallet: string) => {
+  const createNFTPanel = async (name: string, reference: string, bondPrice: number, wallet: string) => {
     try {
-      const response = await useApiBridge.createBond(bondName, bondSymbol, bondPrice, bondWallet);
+      const response = await useApiBridge.createNFT(name, reference, bondPrice, wallet);
       return response;
     } catch (err) {
       console.error('Error creando bono:', err);
@@ -117,7 +117,7 @@ export const useBlockchainService = () => {
 
   return {
     createCompany,
-    createCompanyBond,
+    createNFTPanel,
     mintBond,
     balance
     // bridgeTokens,

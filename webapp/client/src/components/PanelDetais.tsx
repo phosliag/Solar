@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { useNavigate, useLocation } from "react-router-dom";
-import { newPanel, updatePanel } from "../features/solarPanelSlice";
+import { deletePanel, newPanel, updatePanel } from "../features/solarPanelSlice";
 import { SolarPanel } from "../SolarPanel";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -92,7 +92,14 @@ const PanelDetails: React.FC = () => {
 
   const handleDelete = () => {
     // Implementar lógica de borrado aquí
+    setShowPopup(true)
     toast.info("Delete logic goes here.");
+  };
+
+  const handleConfirmDelete = () => {
+    dispatch(deletePanel(panelData._id!))
+    setShowPopup(false)
+    navigate(-1)
   };
 
   return (
@@ -262,6 +269,25 @@ const PanelDetails: React.FC = () => {
             </button>
           </div>
         </form>
+        {showPopup && (
+          <div className="popup-overlay">
+            <div className="popup text-center">
+
+              <h4 className="fst-italic">Delete panel</h4>
+              
+              <p>Are you sure yo want to delete it?</p>
+
+              <div className="popup-actions mt-5">
+                <button className="btn btn-pay-now" onClick={handleConfirmDelete}>
+                    Yes
+                </button>
+                <button className="btn btn-back" onClick={() => setShowPopup(false)}>
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

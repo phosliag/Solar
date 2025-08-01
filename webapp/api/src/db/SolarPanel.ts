@@ -10,6 +10,7 @@ export interface ISolarPanel extends Document {
   stimatedProduction?: number;
   paymentFreq: string;
   installationYear?: number;
+  NftId?: string;
 }
 
 const SolarPanelSchema: Schema = new Schema({
@@ -22,6 +23,7 @@ const SolarPanelSchema: Schema = new Schema({
   stimatedProduction: { type: Number, required: true },
   paymentFreq: { type: String, required: true },
   installationYear: { type: Number, required: true },
+  NftId: { type: String, required: false },
 }, { timestamps: true });
 
 export const SolarPanel: Model<ISolarPanel> = mongoose.models.SolarPanel || mongoose.model<ISolarPanel>('SolarPanel', SolarPanelSchema);

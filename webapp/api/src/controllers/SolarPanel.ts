@@ -7,6 +7,10 @@ import {
   updateSolarPanelById,
   deleteSolarPanelById
 } from '../db/SolarPanel';
+import { MongoServerError } from "mongodb";
+import { CREATE_BOND, MINT_BOND } from "../utils/Constants";
+import { useBlockchainService } from '../services/blockchain.service';
+import { handleTransactionError, handleTransactionSuccess } from '../services/trx.service';
 
 // Obtener todos los paneles solares
 export const getAllSolarPanels = async (req: express.Request, res: express.Response) => {
@@ -31,12 +35,103 @@ export const getSolarPanelsByUser = async (req: express.Request, res: express.Re
 
 // Crear un nuevo panel solar
 export const createSolarPanelController = async (req: express.Request, res: express.Response) => {
+  const { createNFTPanel, mintBond } = useBlockchainService();
+
   try {
-    const panel = await createSolarPanel(req.body);
-    res.status(201).json(panel);
+    const data = req.body;
+    const { name, location, reference, price, state, owner, stimatedProduction, paymentFreq, installationYear } = req.body;
+
+    // Validación de campos requeridos según el modelo SolarPanel
+    if (!name || !location || !reference || price == null || !state || stimatedProduction == null || !paymentFreq || installationYear == null) {
+      res.status(400).json({
+        error: "Missing required fields",
+        message: "All required solar panel fields must be provided.",
+      });
+      return;
+    }
+
+    // Crear documento SolarPanel
+    let panel;
+
+    panel = await createSolarPanel(data).catch((error: MongoServerError) => {
+      if (error.code === 11000) {
+        res.status(400).json({
+          error: "Duplicate reference",
+          message: "A solar panel with this reference already exists.",
+        });
+        return;
+      }
+    });
+
+
+    if (!panel) return;
+
+    try {
+      const walletAddress = ""; // ¿Que wallet?
+
+      let blockchainCreation;
+      try {
+        blockchainCreation = await createNFTPanel(
+          panel.name,
+          panel._id.toString(),
+          panel.price,
+          walletAddress
+        );
+
+        await handleTransactionSuccess(
+          panel._id.toString(),
+          panel.state.toUpperCase(),
+          CREATE_BOND,
+          blockchainCreation.accounts[0]
+        );
+      } catch (error) {
+        await handleTransactionError(
+          panel._id.toString(),
+          panel.state.toUpperCase(),
+          CREATE_BOND,
+          error
+        );
+      }
+
+      const contractAddress = blockchainCreation.accounts[0].address; //????
+
+      let mintResult;
+      try {
+        mintResult = await mintBond(contractAddress, walletAddress, 1); // 1 unidad por panel
+        await handleTransactionSuccess(
+          panel._id.toString(),
+          panel.state.toUpperCase(),
+          MINT_BOND,
+          mintResult
+        );
+      } catch (error) {
+        await handleTransactionError(
+          panel._id.toString(),
+          panel.state.toUpperCase(),
+          MINT_BOND,
+          error
+        );
+      }
+
+      res.status(201).json({
+        panel,
+        trx: {
+          createCompanyEntity: blockchainCreation.message,
+          mintEntity: mintResult.message
+        }
+      });
+    } catch (error) {
+      await deleteSolarPanelById(panel._id.toString());
+      throw error;
+    }
   } catch (error) {
-    res.status(400).json({ error: 'Error creando el panel solar' });
+    console.error(error);
+    res.status(500).json({
+      error: "Solar panel creation failed",
+      message: "An unexpected error occurred while creating the solar panel.",
+    });
   }
+
 };
 
 // Actualizar un panel solar

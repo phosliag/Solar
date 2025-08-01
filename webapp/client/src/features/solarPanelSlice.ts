@@ -87,6 +87,29 @@ export const updatePanel = createAsyncThunk("solarPanel/updatePanel", async (for
   }
 });
 
+export const deletePanel = createAsyncThunk("solarPanel/deletePanel", async (id: String, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`/api/delete-solar-panels/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      try {
+        const error = await response.json();
+        return rejectWithValue(error.message || "Error desconocido");
+      } catch {
+        return rejectWithValue(`Unexpected response: ${response.statusText}`);
+      }
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return rejectWithValue(error);
+  }
+});
+
 // --- RETAIL MARKET SOLAR PANEL LOGIC ---
 export const getRetailMarketPanels = createAsyncThunk("retailMarket/getAll", async (_, { rejectWithValue }) => {
   try {
