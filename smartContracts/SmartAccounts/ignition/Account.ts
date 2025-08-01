@@ -20,7 +20,7 @@ async function main() {
 
   const abiCoder = new AbiCoder();
 
-const constructorArgs = abiCoder.encode(["address"], [process.env.API_WALLET_PUBLIC_KEY]);
+const constructorArgs = abiCoder.encode(["address"], [process.env.ADMIN_WALLET_PUBLIC_KEY]);
 
   // Creation bytecode 
   const creationBytecode = artifact.bytecode + constructorArgs.slice(2);
