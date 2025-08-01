@@ -174,8 +174,8 @@ export async function executeContractMethod(
         logger = _logger;
         contracts = _contracts;
         config = _config;
-       // signer = new ethers.Wallet(config.NETWORK.ADMIN_ACCOUNTS_PRIV_KEY).connect(new ethers.JsonRpcProvider(manageNetwork(_originNetwork)));
-        signer = new ethers.Wallet(config.NETWORK.API_WALLET_PRIV_KEY).connect(new ethers.JsonRpcProvider(manageNetwork(_originNetwork)));
+        signer = new ethers.Wallet(config.NETWORK.ADMIN_ACCOUNTS_PRIV_KEY).connect(new ethers.JsonRpcProvider(manageNetwork(_originNetwork)));
+        //signer = new ethers.Wallet(config.NETWORK.API_WALLET_PRIV_KEY).connect(new ethers.JsonRpcProvider(manageNetwork(_originNetwork)));
     }
 
 

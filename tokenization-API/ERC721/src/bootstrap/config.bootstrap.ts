@@ -22,6 +22,7 @@ export function initConfig(configPath: string): Config {
   config.NETWORK.ALASTRIA = process.env.ALASTRIA_NETWORK_URL || '';
   config.NETWORK.POLYGON = process.env.AMOY_NETWORK_URL ||  '';
   config.NETWORK.ADMIN_ACCOUNTS_PRIV_KEY = process.env.ADMIN_ACCOUNTS_PRIV_KEY || '';
+  config.NETWORK.ADMIN_ACCOUNTS_ACCOUNT = process.env.ADMIN_ACCOUNTS_PUBLIC_KEY || '';
   config.NETWORK.API_WALLET_PRIV_KEY = process.env.API_WALLET_PRIV_KEY || '';
   config.NETWORK.API_WALLET_PUBLIC = process.env.API_WALLET_PUBLIC_KEY || '';
  

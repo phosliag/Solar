@@ -1,6 +1,6 @@
 import express, { Express, Request, Response } from "express";
 import cors from 'cors';
-import { callContractMethodController, executeContractMethodController, transferNFT, returnNFT, bridge, createNFT, requestTransfer, NFTbalance, getFaucetBalance, faucet, requestStable } from "../controllers/contract.controller";
+import { callContractMethodController, executeContractMethodController, transferNFT, returnNFT, createNFT, requestTransfer, NFTbalance, getFaucetBalance, faucet, requestStable } from "../controllers/contract.controller";
 import handleControllerCall from "../controllers";
 
 import Logger from "../../helpers/logger.helper";

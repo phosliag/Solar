@@ -1,53 +1,20 @@
-[Default] [2025-07-29 11:46:03] [INFO] - STARTING APPLICATION
-[ERC20 Contract API] [2025-07-29 11:46:03] [INFO] - INITIALIZING CONTROLLERS
-[Default] [2025-07-29 11:46:03] [INFO] - BOOTSTRAPING APPLICATION
-[ERC20 Contract API] [2025-07-29 11:46:03] [INFO] - STARTING API EXPOSITION
-[ERC20 Contract API] [2025-07-29 11:46:03] [INFO] - STARTING API
-[ERC20 Contract API] [2025-07-29 11:46:03] [INFO] - Express server running on port 4000...
-[Default] [2025-07-29 11:51:32] [INFO] - STARTING APPLICATION
-[ERC20 Contract API] [2025-07-29 11:51:32] [INFO] - INITIALIZING CONTROLLERS
-[Default] [2025-07-29 11:51:32] [INFO] - BOOTSTRAPING APPLICATION
-[ERC20 Contract API] [2025-07-29 11:51:32] [INFO] - STARTING API EXPOSITION
-[ERC20 Contract API] [2025-07-29 11:51:32] [INFO] - STARTING API
-[ERC20 Contract API] [2025-07-29 11:51:32] [INFO] - Express server running on port 4000...
-[ERC20 Contract API] [2025-07-29 11:53:41] [INFO] - POST /createAccount
-[ERC20 Contract API] [2025-07-29 11:53:41] [INFO] - CREATING IN alastria
-[ERC20 Contract API] [2025-07-29 11:53:41] [INFO] - Loading contract file from ./contracts.json...
-[ERC20 Contract API] [2025-07-29 11:53:41] [ERROR] - SyntaxError: Unexpected token : in JSON at position 101
-[ERC20 Contract API] [2025-07-29 11:54:07] [INFO] - POST /createAccount
-[ERC20 Contract API] [2025-07-29 11:54:07] [INFO] - CREATING IN alastria
-[ERC20 Contract API] [2025-07-29 11:54:07] [INFO] - Loading contract file from ./contracts.json...
-[ERC20 Contract API] [2025-07-29 11:54:07] [ERROR] - SyntaxError: Unexpected token : in JSON at position 101
-[Default] [2025-07-29 11:56:07] [INFO] - STARTING APPLICATION
-[ERC20 Contract API] [2025-07-29 11:56:07] [INFO] - INITIALIZING CONTROLLERS
-[Default] [2025-07-29 11:56:07] [INFO] - BOOTSTRAPING APPLICATION
-[ERC20 Contract API] [2025-07-29 11:56:07] [INFO] - STARTING API EXPOSITION
-[ERC20 Contract API] [2025-07-29 11:56:07] [INFO] - STARTING API
-[ERC20 Contract API] [2025-07-29 11:56:07] [INFO] - Express server running on port 4000...
-[ERC20 Contract API] [2025-07-29 11:56:16] [INFO] - POST /createAccount
-[ERC20 Contract API] [2025-07-29 11:56:16] [INFO] - CREATING IN alastria
-[ERC20 Contract API] [2025-07-29 11:56:17] [INFO] - Loading contract file from ./contracts.json...
-[ERC20 Contract API] [2025-07-29 11:56:17] [ERROR] - SyntaxError: Unexpected token : in JSON at position 101
-[Default] [2025-07-29 11:57:44] [INFO] - STARTING APPLICATION
-[ERC20 Contract API] [2025-07-29 11:57:44] [INFO] - INITIALIZING CONTROLLERS
-[Default] [2025-07-29 11:57:44] [INFO] - BOOTSTRAPING APPLICATION
-[ERC20 Contract API] [2025-07-29 11:57:44] [INFO] - STARTING API EXPOSITION
-[ERC20 Contract API] [2025-07-29 11:57:44] [INFO] - STARTING API
-[ERC20 Contract API] [2025-07-29 11:57:44] [INFO] - Express server running on port 4000...
-[ERC20 Contract API] [2025-07-29 11:57:57] [INFO] - POST /createAccount
-[ERC20 Contract API] [2025-07-29 11:57:57] [INFO] - CREATING IN alastria
-[ERC20 Contract API] [2025-07-29 11:57:57] [INFO] - Loading contract file from ./contracts.json...
-[ERC20 Contract API] [2025-07-29 11:57:57] [INFO] - Loading 1 contracts...
-[ERC20 Contract API] [2025-07-29 11:57:57] [INFO] - Loaded 1 contracts successfully.
-[ERC20 Contract API] [2025-07-29 11:57:57] [INFO] - account salt: 0x6665726e616e646f000000000000000000000000000000000000000000000000
-[ERC20 Contract API] [2025-07-29 11:57:57] [ERROR] - Error: bytes32 string must be less than 32 bytes
-[ERC20 Contract API] [2025-07-29 11:58:05] [INFO] - POST /createAccount
-[ERC20 Contract API] [2025-07-29 11:58:05] [INFO] - CREATING IN alastria
-[ERC20 Contract API] [2025-07-29 11:58:05] [INFO] - Loading contract file from ./contracts.json...
-[ERC20 Contract API] [2025-07-29 11:58:05] [INFO] - Loading 1 contracts...
-[ERC20 Contract API] [2025-07-29 11:58:05] [INFO] - Loaded 1 contracts successfully.
-[ERC20 Contract API] [2025-07-29 11:58:05] [INFO] - account salt: fer
-[ERC20 Contract API] [2025-07-29 11:58:05] [INFO] - account alastri: 0x6665720000000000000000000000000000000000000000000000000000000000
-[ERC20 Contract API] [2025-07-29 11:58:06] [INFO] - sin calculo de gas 
-[ERC20 Contract API] [2025-07-29 11:58:06] [INFO] - Waiting for confirmations
-[ERC20 Contract API] [2025-07-29 11:58:10] [INFO] - account alastri: 0x58554706a803b1925B18950A97BB65F229f4537b
+[Default] [2025-08-01 09:48:10] [INFO] - STARTING APPLICATION
+[ERC20 Contract API] [2025-08-01 09:48:10] [INFO] - INITIALIZING CONTROLLERS
+[Default] [2025-08-01 09:48:10] [INFO] - BOOTSTRAPING APPLICATION
+[ERC20 Contract API] [2025-08-01 09:48:10] [INFO] - STARTING API EXPOSITION
+[ERC20 Contract API] [2025-08-01 09:48:10] [INFO] - STARTING API
+[ERC20 Contract API] [2025-08-01 09:48:10] [INFO] - Express server running on port 4000...
+[ERC20 Contract API] [2025-08-01 09:48:26] [INFO] - POST /createAccount
+[ERC20 Contract API] [2025-08-01 09:48:26] [INFO] - CREATING IN alastria
+[ERC20 Contract API] [2025-08-01 09:48:26] [INFO] - Loading contract file from ./contracts.json...
+[ERC20 Contract API] [2025-08-01 09:48:26] [INFO] - Loading 1 contracts...
+[ERC20 Contract API] [2025-08-01 09:48:26] [INFO] - Loaded 1 contracts successfully.
+[ERC20 Contract API] [2025-08-01 09:48:27] [INFO] - sin calculo de gas 
+[ERC20 Contract API] [2025-08-01 09:48:27] [INFO] - Waiting for confirmations
+[ERC20 Contract API] [2025-08-01 09:48:31] [INFO] - account alastri: 0x339a0792aC18D9A2C0fe5b2a1044cC0Bd2a8cA99
+[ERC20 Contract API] [2025-08-01 09:50:30] [INFO] - INITIALIZING CONTROLLERS
+[Default] [2025-08-01 09:50:30] [INFO] - STARTING APPLICATION
+[ERC20 Contract API] [2025-08-01 09:50:30] [INFO] - STARTING API EXPOSITION
+[Default] [2025-08-01 09:50:30] [INFO] - BOOTSTRAPING APPLICATION
+[ERC20 Contract API] [2025-08-01 09:50:30] [INFO] - STARTING API
+[ERC20 Contract API] [2025-08-01 09:50:30] [INFO] - Express server running on port 4000...
