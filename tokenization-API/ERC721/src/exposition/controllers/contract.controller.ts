@@ -80,7 +80,7 @@ export async function createNFT(req: Request): Promise<AppResult> {
     const options: Overrides = req.body.options || {};
 
     let transactionHash = null;
-    const results: { network: string; transactionHash: string | null; address: string | null }[] = [];
+    const results: {  transactionHash: string | null; nftId: string | null }[] = [];
 
     logger.info(`Start CreateBond  in Alastria `);
     const contracts = await loadAllContracts(config, logger);
@@ -93,17 +93,23 @@ export async function createNFT(req: Request): Promise<AppResult> {
     if (resultAlastria && 'logs' in resultAlastria && resultAlastria.logs.length > 0) {
         const address = resultAlastria.logs[0].address;
         transactionHash = resultAlastria.hash; 
+
+        let nftId = null;
+        if (resultAlastria.logs[0].topics.length >= 4) {
+            // El topic[3] contiene el ID del NFT mintiado
+            nftId = BigInt(resultAlastria.logs[0].topics[3]).toString(); // lo convierte a decimal
+        }
         // coger el id del nft --> esta dentro del topic log 4
-        results.push({ network: "ALASTRIA", transactionHash, address });
+        results.push({ transactionHash, nftId });
     } else {     
-        results.push({ network: "ALASTRIA", transactionHash: resultAlastria?.hash ?? null, address: null });
+        results.push({ transactionHash: resultAlastria?.hash ?? null, nftId: null });
     }
 
     return {
         statusCode: 201,
         body: {
-            // message: "Transactions executed successfully",
-            accounts: results,
+          
+            nft: results,
             message: resultAlastria   
         },
     };
