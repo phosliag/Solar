@@ -87,7 +87,7 @@ export async function createNFT(req: Request): Promise<AppResult> {
     initContractsService(logger, contracts, config, "ALASTRIA");
 
     const metadata: string = args[0]; 
-    const newArgs: any[] = [config.NETWORK.API_WALLET_PUBLIC, metadata];
+    const newArgs: any[] = [config.NETWORK.ADMIN_ACCOUNTS_ACCOUNT, metadata];
     const resultAlastria: ContractTransactionResponse | ContractTransactionReceipt | null = await executeContractMethod(contractName, contractAddress, methodName, newArgs, options, "ALASTRIA");
 
     if (resultAlastria && 'logs' in resultAlastria && resultAlastria.logs.length > 0) {
@@ -152,7 +152,7 @@ export async function returnNFT(req: Request): Promise<AppResult> {
     logger.info(` transferNFT`);
     const contracts = await loadAllContracts(config, logger);
 
-    const newArgs: any[] = [contractAddress, config.NETWORK.API_WALLET_PUBLIC, nftID];
+    const newArgs: any[] = [contractAddress, config.NETWORK.ADMIN_ACCOUNTS_ACCOUNT, nftID];
 
     initContractsService(logger, contracts, config, "ALASTRIA");
     const resultAlastria: ContractTransactionResponse | ContractTransactionReceipt | null = await executeContractMethod(contractName, accountFrom, methodName, newArgs, options, "ALASTRIA");
@@ -182,7 +182,7 @@ export async function transferNFT(req: Request): Promise<AppResult> {
     logger.info(` transferNFT`); 
     const contracts = await loadAllContracts(config, logger);
 
-    const newArgs: any[] = [config.NETWORK.API_WALLET_PUBLIC ,accountTo, nftID];
+    const newArgs: any[] = [config.NETWORK.ADMIN_ACCOUNTS_ACCOUNT ,accountTo, nftID];
 
     initContractsService(logger, contracts, config, "ALASTRIA" );
     const resultAlastria: ContractTransactionResponse | ContractTransactionReceipt | null = await executeContractMethod(contractName, contractAddress, methodName, newArgs, options, "ALASTRIA");
@@ -198,117 +198,6 @@ export async function transferNFT(req: Request): Promise<AppResult> {
     }
 }
 
-export async function bridge(req: Request): Promise<AppResult> {
-
-    const contractAddressVault: string = config.CONTRACT.ADDRESS_VAULT;
-   
-    const options: Overrides = req.body.options || {};
-    const args: any[] = req.body.args || [];
-    const accountAddressOwner: string = args[1];
-    const bondAddress: string = args[0];
-    const amount: string = args[2];
-
-
-    const contractNameApprove: string = "Account";
-    const methodNameApprove: string = "approveERC20";
-    const contractAddressApprove: string = accountAddressOwner;
-
-    const tokenName = args[3];
-    const tokenSymbol = args[4];
-    const priceToken = args[5];
-    const apiWalletPublic = config.NETWORK.API_WALLET_PUBLIC;
-     
-
-    const approveArgs: any[] = [bondAddress, contractAddressVault, amount];
-    logger.info(`Start     --       ApproveERC20`);
-    const contracts = await loadAllContracts(config, logger);
-    initContractsService(logger, contracts, config, "ALASTRIA");
-
-    const resultApprove: ContractTransactionResponse | ContractTransactionReceipt | null = await executeContractMethod(contractNameApprove, contractAddressApprove, methodNameApprove, approveArgs, options, "ALASTRIA");
-
-    if (resultApprove && 'status' in resultApprove && resultApprove.status === 1) {
-        logger.info("Approve transaction succeeded. Waiting 10 seconds...");
-
-        await delay(10_000); // espera 10s (10,000 ms)
-
-        // Llama a la siguiente función
-        const contractName: string = "Vault";
-        const methodName: string = "deposit";
-        const newArgs: any[] = [bondAddress, accountAddressOwner, amount];
-
-        logger.info(`Start    --     Deposit`);
-
-        initContractsService(logger, contracts, config, "ALASTRIA");
-
-        const result: ContractTransactionResponse | ContractTransactionReceipt | null = await executeContractMethod(contractName, contractAddressVault, methodName, newArgs, options, "ALASTRIA");
-
-        if (result && "status" in result && result.status === 1) {
-
-
-            const contractName: string = "RepresentativeBondTokenFactory";
-            const methodName: string = "createRepresentativeBondToken";
-            const contractAddressRepresentative: string = config.CONTRACT.ADDRESS_REPRESENTATIVE_BOND_TOKEN;
-
-            logger.info(`Start    --     createRepresentativeBondToken`);
-
-            const representativeArgs: any[] = [tokenName, tokenSymbol, apiWalletPublic, bondAddress, accountAddressOwner, priceToken ];
-
-            initContractsService(logger, contracts, config, "AMOY");
-           
-            const resultAmoy: ContractTransactionResponse | ContractTransactionReceipt | null = await executeContractMethod(contractName, contractAddressRepresentative, methodName, representativeArgs, options, "AMOY");
-            let addressTokenAmoy = "";
-
-            if (resultAmoy && 'logs' in resultAmoy && resultAmoy.logs.length > 0) {
-
-                // esto hay q devolverlo para guardarlo en el mongo --> se manda en la siguiente llamada. 
-                addressTokenAmoy = resultAmoy.logs[0].address;
-                const transactionHash = resultAmoy && 'hash' in resultAmoy ? resultAmoy.hash : 'N/A';
-                logger.info(`account in seco amoy: ${resultAmoy.logs[0].address}`);
-                logger.info(`Start    --    Mint in amoy representative tokens`);
-
-                const contractName: string = "RepresentativeBondToken";
-                const methodName: string = "mint";
-
-                const mintRepresentativeArgs: any[] = [accountAddressOwner, amount];
-
-                initContractsService(logger, contracts, config, "AMOY");
-                const resultTokenMint: ContractTransactionResponse | ContractTransactionReceipt | null = await executeContractMethod(contractName, addressTokenAmoy, methodName, mintRepresentativeArgs, options, "AMOY");
-
-                return {
-                    statusCode: 201,
-                    body: {
-                        message: transactionHash,
-                        contract: addressTokenAmoy
-                    }
-                }
-
-            } else {
-                return {
-                    statusCode: 500,
-                    body: {
-                        message: "create bond in amoy Error"
-                    }
-                }
-            }           
-
-        } else {
-            return {
-                statusCode: 500,
-                body: {
-                    message: "lock in vault Error"
-                }
-            }
-        }       
-
-    } else {
-        return {
-            statusCode: 500,
-            body: {
-                message: "approve error"
-            }
-        }
-    } 
-}
 
 export async function requestTransfer(req: Request): Promise<AppResult> {
  
