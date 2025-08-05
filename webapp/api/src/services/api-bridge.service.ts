@@ -25,8 +25,12 @@ async function post<T = any>(endpoint: string, body: object): Promise<T> {
 }
 
 export const useApiBridge = {
-  async createNFT(name: string, symbol: string, price: number, wallet: string): Promise<CreateBondResponse> {
-    return await post('/createNFT', { name, symbol, price, wallet });
+  async createNFT(solarJson: string): Promise<CreateBondResponse> {
+    return await post('/createNFT', { solarJson });
+  },
+
+  async transferNFT(userWallet: string, nftId: string): Promise<CreateBondResponse> {
+    return await post('/transferNFT', { userWallet, nftId });
   },
 
   async mintBond(bondAddress: string, toWallet: string, amount: number): Promise<CreateBondResponse> {

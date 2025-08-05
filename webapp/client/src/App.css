@@ -5,7 +5,7 @@
   text-align: center;
 }
 
-.btn, .btn-pay-now, .btn-back {
+/* .btn, .btn-pay-now, .btn-back {
   border-radius: 0;
   background: linear-gradient(90deg, var(--color-green-accent) 0%, var(--color-green-main) 100%);
   color: #fff;
@@ -17,6 +17,30 @@
   transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
   outline: none;
   letter-spacing: 0.5px;
+} */
+
+/* Estilo base común para todos los botones */
+.btn {
+  border-radius: 0;
+  color: #fff;
+  border: none;
+  padding: 0.75em 2.2em;
+  font-weight: 600;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 8px 0 rgba(60, 120, 60, 0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  outline: none;
+  letter-spacing: 0.5px;
+}
+
+/* Botón de acción principal ("Pay Now") con gradiente principal */
+.btn-pay-now {
+  background: linear-gradient(90deg, var(--color-green-main) 0%, var(--color-border) 100%);
+}
+
+/* Botón de acción secundaria ("Back") con color secundario */
+.btn-back {
+  background: linear-gradient(90deg, var(--color-green-secondary) 0%, var(--color-border) 100%);
 }
 
 .btn:hover, .btn-pay-now:hover, .btn-back:hover {
@@ -58,6 +82,8 @@
 
 /* Holder list table */
 .table-hl {
+  display: table;
+  table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
   background-color: var(--color-green-soft, #f4f8f6);
@@ -72,6 +98,9 @@
   border-bottom: 1px solid var(--color-border, #d0e2d8);
   text-align: center;
   font-size: 1rem;
+  white-space: nowrap;        /* Evita que el texto se divida en varias líneas */
+  overflow: hidden;           /* Oculta el contenido que se desborda */
+  text-overflow: ellipsis;    /* Añade "..." si el texto no cabe */
 }
 
 .table-hl th, .admin-table-header {

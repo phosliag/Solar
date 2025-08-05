@@ -91,7 +91,6 @@ export const registerIssuer = async (req: express.Request, res: express.Response
         
         await handleTransactionSuccess(
           foundIssuerId,
-          account.network.toUpperCase(),
           CREATE_ACCOUNT_MULTIPLE,
           account
         );
@@ -103,7 +102,6 @@ export const registerIssuer = async (req: express.Request, res: express.Response
       for (const account of response.accounts) {
         await handleTransactionError(
           foundIssuerId,
-          account.network.toUpperCase(),
           CREATE_ACCOUNT_MULTIPLE,
           error
         );
@@ -281,7 +279,6 @@ export const updatePayment = async (req: express.Request, res: express.Response)
     if (responseTransfer) {
       await handleTransactionSuccess(
         userId,
-        network.toUpperCase(),
         REQUEST_TRANSFER,
         responseTransfer
       );
@@ -290,7 +287,6 @@ export const updatePayment = async (req: express.Request, res: express.Response)
   } catch (error) {
     await handleTransactionError(
       userId,
-      network.toUpperCase(),
       REQUEST_TRANSFER,
       error
     );

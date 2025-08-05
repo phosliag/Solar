@@ -3,7 +3,6 @@ import { createTrxSuccessful } from "../db/trxSuccessful";
 
 export const handleTransactionError = async (
     userId: string,
-    network: string,
     trxType: string,
     errorData: any
   ) => {
@@ -18,14 +17,13 @@ export const handleTransactionError = async (
       // Crear el registro de error
       await createTrxError({
         userId,
-        network,
         trx_type: trxType,
         data: errorString,
         timestamp: new Date()
       });
 
       // Log de error para debugging
-      console.error(`Error de transacción registrado - Tipo: ${trxType}, Usuario: ${userId}, Red: ${network}, Detalles del error: ${errorString}`);
+      console.error(`Error de transacción registrado - Tipo: ${trxType}, Usuario: ${userId}, Detalles del error: ${errorString}`);
       
       return false;
     } catch (error) {
@@ -36,7 +34,6 @@ export const handleTransactionError = async (
 
   export const handleTransactionSuccess = async (
     userId: string,
-    network: string,
     trxType: string,
     data: any
   ) => {
@@ -50,14 +47,13 @@ export const handleTransactionError = async (
       // Crear el registro de transacción exitosa
       await createTrxSuccessful({
         userId,
-        network,
         trx_type: trxType,
         trx: trxHash,
         timestamp: new Date()
       });
 
       // Log de éxito para debugging
-      console.log(`Transacción exitosa registrada - Tipo: ${trxType}, Usuario: ${userId}, Red: ${network}, Hash de transacción: ${trxHash}`);
+      console.log(`Transacción exitosa registrada - Tipo: ${trxType}, Usuario: ${userId}, Hash de transacción: ${trxHash}`);
       
       return true;
     } catch (error) {

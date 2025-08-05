@@ -31,7 +31,6 @@ export const useBlockchainService = () => {
           await createAccountSimple(acc.address, acc.network);
           await handleTransactionSuccess(
             companyName,
-            acc.network.toUpperCase(),
             CREATE_INDIVIDUAL_ACCOUNT_RETRY,
             acc
           );
@@ -40,7 +39,6 @@ export const useBlockchainService = () => {
           console.error(`Error al reintentar cuenta ${acc.address}:`, retryErr);
           await handleTransactionError(
             companyName,
-            acc.network.toUpperCase(),
             CREATE_INDIVIDUAL_ACCOUNT_RETRY,
             retryErr
           );
@@ -66,9 +64,9 @@ export const useBlockchainService = () => {
   };
 
   // Crear un bono (similar al método createBond en Angular)
-  const createNFTPanel = async (name: string, reference: string, bondPrice: number, wallet: string) => {
+  const createNFTPanel = async (solarJson: string) => {
     try {
-      const response = await useApiBridge.createNFT(name, reference, bondPrice, wallet);
+      const response = await useApiBridge.createNFT(solarJson);
       return response;
     } catch (err) {
       console.error('Error creando bono:', err);
@@ -115,11 +113,21 @@ export const useBlockchainService = () => {
   //   return mockBalance;
   // };
 
+  const transferNFT = async (userWallet: string, nftId: string) => {
+    try {
+      const response = await useApiBridge.transferNFT(userWallet, nftId);
+      return response;
+    } catch (err) {
+      console.error('Error transfering NFT:', err);
+    }
+  };
+
   return {
     createCompany,
     createNFTPanel,
     mintBond,
-    balance
+    balance,
+    transferNFT,
     // bridgeTokens,
     // getBSCBalance,
     // provider,

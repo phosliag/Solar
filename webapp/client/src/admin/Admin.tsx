@@ -54,6 +54,9 @@ const Admin = () => {
   const navigate = useNavigate();
   return (
     <Container fluid className="p-4" style={{ maxWidth: '100%' }}>
+      <div className="col-12 col-md-6 text-end mb-3">
+        <Button className="btn btn-back" onClick={() => navigate("/")}>Log out</Button>
+      </div>
       <h1 className="mb-4" style={{ color: 'var(--color-green-main)' }}>Admin Dashboard</h1>
 
       <div className="container-md d-flex flex-column align-items-center mb-4">
@@ -61,13 +64,11 @@ const Admin = () => {
         <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/manage-bonds")}>MANAGE PANELS</button>
         <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/management-menu")}>WALLET</button>
         <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/payment-management")}>PAYMENT MANAGEMENT</button>
+        <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/transactions")}>TRANXACTIONS DETAILS</button>
+        <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/user-list")}>REGISTERED INVESTORS</button>
       </div>
 
-      <div style={{
-        backgroundColor: 'var(--color-bg)',
-        padding: '20px',
-        marginBottom: '24px'
-      }}>
+      <div style={{ backgroundColor: 'var(--color-bg)', padding: '20px', marginBottom: '24px' }}>
         <h5 className="mb-3">Faucet</h5>
         <div className="row">
           <div className="col-12 col-md-6 mb-3">
@@ -77,14 +78,12 @@ const Admin = () => {
               <Button className="btn-pay-now" onClick={handleFaucet}>Faucet</Button>
             </Form>
           </div>
-          <div className="col-12 col-md-6 text-end mb-3">
-            <Button className="btn btn-back" onClick={() => navigate("/")}>Log out</Button>
-          </div>
+
         </div>
 
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <h5 className="section-title" style={{ fontSize: '24px', margin: 0, marginBottom: '20px' }}>
-            Transactions {status === "success" ? "exitosas" : "fallidas"}
+            {status === "success" ? "Successful" : "Failed"} Transactions 
           </h5>
 
           <div className="d-flex justify-content-between align-items-center mb-4">
@@ -98,7 +97,7 @@ const Admin = () => {
                     value={searchUserId}
                     onChange={(e) => setSearchUserId(e.target.value)}
                   />
-                  {/* <Button variant="primary" onClick={() => setSearchUserId(searchUserId)}>Search</Button> */}
+                  <Button variant="primary" onClick={() => setSearchUserId(searchUserId)}>Search</Button>
                 </Form>
               </div>
             </div>
@@ -114,16 +113,9 @@ const Admin = () => {
           </div>
         </div>
 
-        <div style={{
-          overflowX: 'visible',
-          overflowY: 'visible',
-          position: 'relative',
-          zIndex: 1,
-          margin: '0 -24px',
-          width: '100%'
-        }}>
+        <div style={{ overflowX: 'visible', overflowY: 'visible', position: 'relative', zIndex: 1, margin: '0 -24px', width: '100%' }}>
           <div style={{ minWidth: '100%', padding: '0 24px', width: '135vh' }}>
-            <table className="table-hl">
+            <table className="table-hl" style={{ overflowX: 'hidden' }}>
               <thead>
                 <tr>
                   <th className="admin-table-header">User ID</th>
@@ -160,7 +152,6 @@ const Admin = () => {
                       </Dropdown>
                     </div>
                   </th>
-                  <th className="admin-table-header">Network</th>
                   <th className="admin-table-header">Date</th>
                   <th className="admin-table-header">trx id</th>
                 </tr>
@@ -170,7 +161,6 @@ const Admin = () => {
                   <tr key={trx._id}>
                     <td className="admin-table-cell" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{trx.userId}</td>
                     <td className="admin-table-cell">{trx.trx_type}</td>
-                    <td className="admin-table-cell">{trx.network}</td>
                     <td className="admin-table-cell">{new Date(trx.timestamp).toLocaleDateString()}</td>
                     <td className="admin-table-cell" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><a href={getPrefixedTrx(trx.network, trx.trx)} target="_blank" rel="noopener noreferrer">{trx.trx}</a></td>
                   </tr>)
@@ -194,13 +184,8 @@ const Admin = () => {
                 }
               </tbody>
             </table>
-            {/* ) : (
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <p>No hay registros disponibles.</p>
-              </div>
-            )} */}
           </div>
-        </div>
+        </div> */}
       </div>
     </Container>
   );

@@ -41,6 +41,7 @@ export const purchase = async (req: express.Request, res: express.Response) => {
     }
 
     // Find the solar panel by _id in the full collection
+    // TODO: change reference to _id in back and front because the data in reference is the panel _id
     const panel = await getSolarPanelById(purchaseData.reference);
     if (!panel) {
       res.status(404).json({
@@ -50,11 +51,27 @@ export const purchase = async (req: express.Request, res: express.Response) => {
       return;
     }
 
-    // Create the purchase record
-    const purchase = await createPurchaseUser({ userId: purchaseData.userId, reference: purchaseData.reference });
+    const user = await getInvestorById(purchaseData.userId);
+    if (!user) {
+      res.status(404).json({
+        error: "User not found",
+        message: "The specified user does not exist.",
+      });
+      return;
+    }
+    let updatedPanel, nftTransfer;
+    try {
+      nftTransfer = await useBlockchainService().transferNFT(user.walletAddress, panel.NftId);
 
-    // Update the owner of the solar panel using the reference as _id
-    const updatedPanel = await updateSolarPanelById(purchaseData.reference, { owner: purchaseData.userId });
+      // Create the purchase record
+      const purchase = await createPurchaseUser({ userId: purchaseData.userId, reference: purchaseData.reference });
+
+      // Update the owner of the solar panel using the reference as _id
+      updatedPanel = await updateSolarPanelById(purchaseData.reference, { owner: purchaseData.userId });
+    } catch (error) {
+      throw error
+    }
+
 
     res.status(201).json({
       message: "Purchase successful",
@@ -85,34 +102,34 @@ export const getTokenListAndUpcomingPaymentsByInvestor = async (req: express.Req
 
     // recorremos los paymentInvoices. 
 
-      for (const invoice of paymentInvoices) {
-          const bond = await getEntityById(invoice.bonoId);
-          const balanceResponse = await balance(bond.tokenState[0].contractAddress, wallet, bond.tokenState[0].network);
-    
-          // tokenList: todos los registros sin importar 'paid'
-          userResponse.tokenList.push({
-              bondName: bond.itemName,
-              network: invoice.network,
-              amountAvaliable: invoice.amount,
-              price: (invoice.amount * Number(balanceResponse.message)) * bond.unitPrice,
-          });
+    for (const invoice of paymentInvoices) {
+      const bond = await getEntityById(invoice.bonoId);
+      const balanceResponse = await balance(bond.tokenState[0].contractAddress, wallet, bond.tokenState[0].network);
 
-          // upcomingPayment: pagos no pagados y cuya fecha sea en el año actual
-          for (const payment of invoice.payments) {
-              const paymentDate = dayjs(payment.timeStamp);
-              if (
-                  !payment.paid &&
-                  paymentDate.year() === today.year()
-              ) {
-                  const paymentAmount = invoice.amount * bond.unitPrice * (bond.rate / 100);
-                  userResponse.upcomingPayment.push({
-                      bondName: bond.itemName,
-                      paymentDate: paymentDate.format("D/MM/YYYY"),
-                      paymentAmount,
-                  });
-              }
-          }
+      // tokenList: todos los registros sin importar 'paid'
+      userResponse.tokenList.push({
+        bondName: bond.itemName,
+        network: invoice.network,
+        amountAvaliable: invoice.amount,
+        price: (invoice.amount * Number(balanceResponse.message)) * bond.unitPrice,
+      });
+
+      // upcomingPayment: pagos no pagados y cuya fecha sea en el año actual
+      for (const payment of invoice.payments) {
+        const paymentDate = dayjs(payment.timeStamp);
+        if (
+          !payment.paid &&
+          paymentDate.year() === today.year()
+        ) {
+          const paymentAmount = invoice.amount * bond.unitPrice * (bond.rate / 100);
+          userResponse.upcomingPayment.push({
+            bondName: bond.itemName,
+            paymentDate: paymentDate.format("D/MM/YYYY"),
+            paymentAmount,
+          });
+        }
       }
+    }
     res.status(200).json(userResponse);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener los bonos del usuario" });

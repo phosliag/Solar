@@ -1,7 +1,8 @@
-import { Schema, model, Document } from 'mongoose';
+import mongoose, { Schema, model, Document } from 'mongoose';
 
 // Interfaz del documento
 export interface IRetailMarket extends Document {
+  _id: mongoose.Types.ObjectId;
   reference: string;
   location: string;
   owner?: string;

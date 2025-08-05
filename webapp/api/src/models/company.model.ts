@@ -30,8 +30,12 @@ export interface BondAccount {
   address: string;
 }
 
+export interface NFT {
+  transactionHash: string;
+  nftId: string;
+}
+
 export interface CreateBondResponse {
   message: string;
-  accounts: BondAccount[];
-  contract: string;
+  nft: NFT[];
 }

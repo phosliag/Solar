@@ -17,6 +17,9 @@ import Admin from "./admin/Admin";
 import Lux from "./admin/ElectricityPrice";
 import MyPanels from "./components/investor/MyPanels";
 import PanelDetails from "./components/PanelDetais";
+import TransactionTable from "./admin/TransactionTable";
+import InvestorList from "./admin/InvestorList";
+import InvestorDetails from "./admin/InvestroDetails";
 
 function App() {
   return (
@@ -24,6 +27,7 @@ function App() {
       <Route path="/" element={<Inicio />} />
       <Route path="/user-access" element={<SignIn />} />
       <Route path="/user-registration" element={<SignUp />} />
+      <Route path="/admin-dash" element={<Admin />} />
       <Route path="/form" element={<PanelCreationForm />} />
       <Route path="/manage-bonds" element={<Manage />} />
       <Route path="/add-to-market" element={<RetailMarket />} />
@@ -31,13 +35,15 @@ function App() {
       <Route path="/holder-list" element={<HolderList />} />
       <Route path="/management-menu" element={<EnterpriseWallet />} />
       <Route path="/payment-management" element={<PaymentManagement />} />
+      <Route path="/transactions" element={<TransactionTable />} />
+      <Route path="/user-list" element={<InvestorList />} />
+      <Route path="/investor/:id" element={<InvestorDetails />} />
       <Route path="/investor-dash" element={<Oportunities />} />
       <Route path="/investor-wallet" element={<InvestmentWallet />} />
       <Route path="/purchase-details/:id" element={<BondDetails />} />
       <Route path="/my-panels" element={<MyPanels />} />
-      <Route path="/admin-dash" element={<Admin />} />
-      <Route path="/lux" element={<Lux />} />
       <Route path="/panel-details" element={<PanelDetails />} />
+      <Route path="/lux" element={<Lux />} />
     </Routes>
   );
 }

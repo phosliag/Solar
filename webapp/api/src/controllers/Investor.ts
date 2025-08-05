@@ -82,18 +82,16 @@ export const registerInvestor = async (req: express.Request, res: express.Respon
       
         await handleTransactionSuccess(
           foundInvestorId,
-          response.accounts[0].network.toUpperCase(),
           CREATE_ACCOUNT_MULTIPLE,
           response.accounts[0]
         );
          // Llamar al faucet para la nueva cuenta
-        //  await useApiBridge.faucet(response.accounts[0].address, 10);
-        //  console.log("Faucet realizado para la cuenta:", response.accounts[0].address);
+         await useApiBridge.faucet(response.accounts[0].address, 10);
+         console.log("Faucet realizado para la cuenta:", response.accounts[0].address);
     
     } catch (error) {
         await handleTransactionError(
           foundInvestorId,
-          response.accounts[0].network.toUpperCase(),
           CREATE_ACCOUNT_MULTIPLE,
           error
         );

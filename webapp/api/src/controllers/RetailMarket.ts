@@ -1,7 +1,10 @@
 import express from 'express';
 import { getRetailMarkets, getRetailMarketById, createRetailMarket, updateRetailMarketById, deleteRetailMarketById } from '../db/RetailMarket';
 import { MongoServerError } from 'mongodb';
-import { SolarPanel } from '../db/SolarPanel';
+import { getSolarPanelsByReference, SolarPanel, updateSolarPanelById } from '../db/SolarPanel';
+import { handleTransactionError, handleTransactionSuccess } from '../services/trx.service';
+import { CREATE_BOND } from '../utils/Constants';
+import { useBlockchainService } from '../services/blockchain.service';
 
 // Obtener todos los paneles solares del mercado
 export const getAllRetailMarketItems = async (req: express.Request, res: express.Response) => {
@@ -57,12 +60,45 @@ export const addRetailMarketItem = async (req: express.Request, res: express.Res
         return;
       }
     });
+    const panel = await getSolarPanelsByReference(reference);
+    if (!panel) {
+      res.status(404).json({ error: 'Not found', message: 'Panel not found' });
+      return;
+    }
+    try {
+
+      let blockchainCreation;
+      console.log('panel', JSON.stringify(panel));
+      try {
+        blockchainCreation = await useBlockchainService().createNFTPanel(JSON.stringify(panel));
+
+        await handleTransactionSuccess(
+          panel._id.toString(),
+          CREATE_BOND,
+          blockchainCreation.nft[0].transactionHash
+        );
+      } catch (error) {
+        await handleTransactionError(
+          panel._id.toString(),
+          CREATE_BOND,
+          error
+        );
+      }
+
+      await updateSolarPanelById(panel._id.toString(), { NftId: blockchainCreation.nft[0].nftId });
+
+    } catch (error) {
+      if (item && item._id) {
+        await deleteRetailMarketById(item._id.toString());
+      }
+      throw error;
+    }
     res.status(201).json(item);
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      error: 'Panel creation failed',
-      message: 'An unexpected error occurred while creating the panel.',
+      error: 'Retail market item creation failed',
+      message: 'An unexpected error occurred while creating the retail market item.',
     });
   }
 };

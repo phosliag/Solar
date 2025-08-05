@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ISolarPanel extends Document {
+  _id: mongoose.Types.ObjectId;
   name: string;
   location: string;
   reference: string;
@@ -30,7 +31,8 @@ export const SolarPanel: Model<ISolarPanel> = mongoose.models.SolarPanel || mong
 
 // CRUD functions
 export const getSolarPanels = () => SolarPanel.find();
-export const getSolarPanelsByOwner = (owner: string) => SolarPanel.find({ owner });
+export const getSolarPanelsByOwner = (owner: string) => SolarPanel.findOne({ owner });
+export const getSolarPanelsByReference = (reference: string) => SolarPanel.findOne({ reference });
 export const getSolarPanelById = (id: string) => SolarPanel.findById(id);
 export const createSolarPanel = (values: Record<string, any>) => new SolarPanel(values).save();
 export const updateSolarPanelById = (id: string, update: Partial<ISolarPanel>) => SolarPanel.findByIdAndUpdate(id, update, { new: true });
