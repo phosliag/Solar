@@ -15,16 +15,16 @@ export interface ISolarPanel extends Document {
 }
 
 const SolarPanelSchema: Schema = new Schema({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   location: { type: String, required: true },
-  reference: { type: String, required: true },
+  reference: { type: String, required: true, unique: true },
   price: { type: Number, required: true },
   state: { type: String, required: true },
   owner: { type: String, required: false },
   stimatedProduction: { type: Number, required: true },
   paymentFreq: { type: String, required: true },
   installationYear: { type: Number, required: true },
-  NftId: { type: String, required: false },
+  NftId: { type: String, required: false, unique: true },
 }, { timestamps: true });
 
 export const SolarPanel: Model<ISolarPanel> = mongoose.models.SolarPanel || mongoose.model<ISolarPanel>('SolarPanel', SolarPanelSchema);

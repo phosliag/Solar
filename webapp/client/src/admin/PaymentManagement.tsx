@@ -10,14 +10,14 @@ const PaymentManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const registeredBonds: any[] = useAppSelector((state) => state.solarPanel.panels) || [];
+  const panels: any[] = useAppSelector((state) => state.solarPanel.panels) || [];
   const user = useAppSelector((state) => state.user.userLoged);
   const upcomingPayments = useAppSelector((state) => state.user.upcomingPayments);
   const pastDuePayments = useAppSelector((state) => state.user.pastDuePayments);
-  const [selectedBond, setSelectedBond] = useState<SolarPanel | null>(null);
+  const [selectedPanel, setSelectedPanel] = useState<SolarPanel | null>(null);
   const payBatch: string[] = [];
-  const handleBond = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedBond(registeredBonds?.find((bond) => bond.bondName === e.target.value) || null);
+  const handlePanel = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPanel(panels?.find((panel) => panel.name === e.target.value) || null);
   };
 
   useEffect(() => {
@@ -107,12 +107,12 @@ const PaymentManagement = () => {
           id="bond"
           name="bond"
           className="form-control bg-form"
-          value={selectedBond?.name}
-          onChange={handleBond}>
+          value={selectedPanel?.name}
+          onChange={handlePanel}>
           <option value="">Select bond</option>
-          {registeredBonds?.map((bond) => (
-            <option value={bond.bondName} key={bond._id}>
-              {bond.bondName}
+          {panels?.map((panel) => (
+            <option value={panel.name} key={panel._id}>
+              {panel.name}
             </option>
           ))}
         </select>
@@ -123,13 +123,13 @@ const PaymentManagement = () => {
       </h4>
       <p className="text-danger">**Only if there are pending payments</p>
       <p>
-        Total amount to pay: {upcomingPayments.find((payment) => payment.bondName === selectedBond?.name)?.amount}
+        Total amount to pay: {upcomingPayments.find((payment) => payment.bondName === selectedPanel?.name)?.amount}
         <button 
           className="btn-pay-now" 
           style={{ marginLeft: "30px" }}
           disabled={isLoading}
           onClick={() => {
-            const payment = upcomingPayments.find((payment) => payment.bondName === selectedBond?.name);
+            const payment = upcomingPayments.find((payment) => payment.bondName === selectedPanel?.name);
             console.log('Procesando pagos seleccionados');
             if (payment) {
               const paymentsToProcess = payment.investors
@@ -137,7 +137,7 @@ const PaymentManagement = () => {
                   payBatch.includes(investor.userId))
                 .map((investor: { userId: string, amount: number, numberToken: number }) => ({
                   userId: investor.userId,
-                  panelId: selectedBond?._id!,
+                  panelId: selectedPanel?._id!,
                   network: payment.network
                 }));
               console.log('Pagos a procesar:', paymentsToProcess);
@@ -158,7 +158,7 @@ const PaymentManagement = () => {
         </button>
       </p>
       {(() => {
-        const payment = upcomingPayments.find((payment) => payment.bondName === selectedBond?.name);
+        const payment = upcomingPayments.find((payment) => payment.bondName === selectedPanel?.name);
         console.log('payment', payment);
         if (!payment) return null;
 
@@ -188,7 +188,7 @@ const PaymentManagement = () => {
                       <button 
                         className="btn-pay-now" 
                         disabled={isLoading}
-                        onClick={() => handlePay([{userId: investor.userId, panelId: selectedBond?._id!, network: payment.network}])}>
+                        onClick={() => handlePay([{userId: investor.userId, panelId: selectedPanel?._id!, network: payment.network}])}>
                         {isLoading ? (
                           <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         ) : (
@@ -225,7 +225,7 @@ const PaymentManagement = () => {
           </tr>
         </thead>
         <tbody>
-          {pastDuePayments.find((payment) => payment.bondName === selectedBond?.name)?.map((payment: any) => (
+          {pastDuePayments.find((payment) => payment.bondName === selectedPanel?.name)?.map((payment: any) => (
             <tr key={payment.paymentDate}>
               <td>{payment.investors.userId}</td>
               <td>{payment.paymentDate}</td>

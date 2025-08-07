@@ -1,4 +1,3 @@
-// InvestorList.tsx
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { readInvestors } from "../features/userSlice";
@@ -11,27 +10,48 @@ const InvestorList: React.FC = () => {
 
   useEffect(() => {
     dispatch(readInvestors());
-  }, []);
+  }, [dispatch]);
 
   if (status === "loading") return <p>Cargando inversores...</p>;
   if (status === "failed") return <p>Error: {error}</p>;
 
   return (
     <div>
-      <h2>Lista de Inversores</h2>
-      <ul>
-        {investors.map(investor => (
-          <li
-            key={investor._id}
-            style={{ cursor: "pointer" }}
-            onClick={() =>
-              navigate(`/investor/${investor._id}`, { state: { investor } })
-            }
-          >
-            {investor.name} {investor.surname} ({investor.email})
-          </li>
-        ))}
-      </ul>
+      <h2 style={{ color: "var(--color-green-accent)", marginBottom: "1.6rem" }}>Lista de Inversores</h2>
+      <div className="solar-panel-section">
+        <table className="table-hl">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th>Email</th>
+              <th>País</th>
+              <th>Ver Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            {investors.map((investor) => (
+              <tr key={investor._id}>
+                <td>{investor.name}</td>
+                <td>{investor.surname}</td>
+                <td>{investor.email}</td>
+                <td>{investor.country}</td>
+                <td>
+                  <button
+                    className="btn"
+                    onClick={() =>
+                      navigate(`/investor/${investor._id}`, { state: { investor } })
+                    }
+                  >
+                    Ver detalles
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {investors.length === 0 && <p style={{ color: "var(--color-green-accent)" }}>No hay inversores disponibles.</p>}
+      </div>
     </div>
   );
 };

@@ -2,13 +2,13 @@ import { getPurchaseUsers } from "../db/PurchaseUser";
 import { purchase, getAllPurchaseUsers, getTokenListAndUpcomingPaymentsByInvestor, balanceFaucet, faucetStable } from "../controllers/PurchaseUser";
 import express from "express";
 import { getAllIssuers, registerIssuer, updatePayment, getOneIssuer } from "../controllers/Issuer";
-import { getAllInvestors, registerInvestor } from "../controllers/Investor";
+import { getAllInvestors, registerInvestor, updateInvestor } from "../controllers/Investor";
 import { login } from "../controllers/auth";
 
 export default (router: express.Router) => {
     router.post('/register-purchase', purchase)   
-    router.post('/register-issuer', registerIssuer)
     router.post('/register-investor', registerInvestor)
+    router.put('/update-investor/:id', updateInvestor)
     router.get('/users', getAllPurchaseUsers)
     router.get('/investors', getAllInvestors)
     router.post('/login', login)

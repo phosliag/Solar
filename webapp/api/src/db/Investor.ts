@@ -14,6 +14,11 @@ export interface IInvestor {
   password: string;
   walletAddress?: string;
   accounts?: any;
+  authImages: {
+    frontID?: Buffer | string; 
+    backID?: Buffer | string; 
+    residenceProof?: Buffer | string; 
+  }
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -1,11 +1,15 @@
 import express from "express";
 import { MongoServerError } from "mongodb";
-import { createInvestor, getInvestors, getInvestorByEmail, updateInvestorById, deleteInvestorById } from "../db/Investor";
+import { createInvestor, getInvestors, getInvestorByEmail, updateInvestorById, deleteInvestorById, getInvestorById } from "../db/Investor";
 import { useBlockchainService } from '../services/blockchain.service'
 import { handleTransactionError, handleTransactionSuccess } from "../services/trx.service";
 import { CREATE_ACCOUNT_MULTIPLE } from "../utils/Constants";
 import { useApiBridge } from "../services/api-bridge.service";
 import { createAccount } from "../services/api-smart-account.service";
+import bcrypt from 'bcryptjs';
+
+const SALT_ROUNDS = 10;
+
 /**
  * Obtener todos los usuarios
  */
@@ -79,23 +83,23 @@ export const registerInvestor = async (req: express.Request, res: express.Respon
     let response = null;
     try {
       response = await createAccount(foundInvestorId);
-      
-        await handleTransactionSuccess(
-          foundInvestorId,
-          CREATE_ACCOUNT_MULTIPLE,
-          response.accounts[0]
-        );
-         // Llamar al faucet para la nueva cuenta
-         await useApiBridge.faucet(response.accounts[0].address, 10);
-         console.log("Faucet realizado para la cuenta:", response.accounts[0].address);
-    
+
+      await handleTransactionSuccess(
+        foundInvestorId,
+        CREATE_ACCOUNT_MULTIPLE,
+        response.accounts[0]
+      );
+      // Llamar al faucet para la nueva cuenta
+      await useApiBridge.faucet(response.accounts[0].address, 10);
+      console.log("Faucet realizado para la cuenta:", response.accounts[0].address);
+
     } catch (error) {
-        await handleTransactionError(
-          foundInvestorId,
-          CREATE_ACCOUNT_MULTIPLE,
-          error
-        );
-      
+      await handleTransactionError(
+        foundInvestorId,
+        CREATE_ACCOUNT_MULTIPLE,
+        error
+      );
+
       console.log('Error BlockchainAcc', error)
       res.status(500).json({ error: "Error al crear cuenta en blockchain", message: error.message });
       await deleteInvestorById(foundInvestorId);
@@ -119,3 +123,55 @@ export const registerInvestor = async (req: express.Request, res: express.Respon
     });
   }
 };
+
+
+/**
+ * Actualiza los datos de un inversor por su ID
+ */
+export const updateInvestor = async (req: express.Request, res: express.Response) => {
+  const investorId = req.params.id;
+  const update = req.body;
+
+  try {
+    // Buscar el inversor
+    const investor = await getInvestorById(investorId);
+    if (!investor) {
+      res.status(404).json({
+        error: "Investor not found",
+        message: "No investor found with the provided ID."
+      });
+      return
+    }
+
+    // Si se va a actualizar la contraseña, cifrarla
+    if (update.password) {
+      // Solo hashea si la contraseña es diferente
+      const same = await bcrypt.compare(update.password, investor.password);
+      if (!same) {
+        const salt = await bcrypt.genSalt(SALT_ROUNDS);
+        update.password = await bcrypt.hash(update.password, salt);
+      } else {
+        delete update.password; // No la actualices si es igual
+      }
+    }
+
+    // Actualiza los campos restantes
+    const updatedInvestor = await updateInvestorById(investorId, update);
+
+    res.status(200).json(updatedInvestor);
+  } catch (error) {
+    // Error de duplicado en campos 'email', 'taxIdNumber', 'idCard', etc.
+    if (error instanceof MongoServerError && error.code === 11000) {
+      res.status(400).json({
+        error: "Duplicate field value",
+        message: "A record already exists with some unique value you entered."
+      });
+      return
+    }
+    console.error(error);
+    res.status(500).json({
+      error: "Update failed",
+      message: "An unexpected error occurred while updating the investor."
+    });
+  }
+}
