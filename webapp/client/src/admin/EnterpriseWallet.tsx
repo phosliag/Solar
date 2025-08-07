@@ -29,7 +29,8 @@ const EnterpriseWallet = () => {
 
   const userId = useAppSelector((state) => state.user.userLoged?._id);
   //TODO: Que wallet utilizar ya que ahora no existe usuario tipo Issuer
-  const wallet = useAppSelector((state) => state.user.userLoged?.walletAddress);
+  const wallet = process.env.ADMIN_ACCOUNTS_PUBLIC_KEY || "0x0480927822BA8f929D448B7EC30E65Eb4a986983"
+
   const panels = useAppSelector((state) => state.solarPanel.panels) || [];
 
   const priceTotal = tokenList?.reduce((acc, token) => {
