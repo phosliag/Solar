@@ -10,8 +10,8 @@ export interface RetailBondBuy {
 }
 
 interface BondState {
-  userLoged: Investor  | null;
-  investors: (Investor )[];
+  userLoged: Investor | null;
+  investors: Investor[];
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null | undefined;
   retailBondBuys: RetailBondBuy[];
@@ -29,17 +29,42 @@ const initialState: BondState = {
   pastDuePayments: [],
 };
 
+export const findInvestorByEmail = createAsyncThunk(
+  "user/findInvestorByEmail",
+  async (email: string, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/investor-by-email?email=${encodeURIComponent(email)}`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        try {
+          const error = await response.json();
+          return rejectWithValue(error.message || "Error desconocido");
+        } catch {
+          return rejectWithValue(`Unexpected response: ${response.statusText}`);
+        }
+      }
+
+      const data = await response.json();
+      return data as Investor;
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Error en la conexión");
+    }
+  }
+);
+
 export const registerInvestor = createAsyncThunk(
   "user/registerInvestor",
-  async (dataI: { investor: Investor; particular: boolean }, { rejectWithValue }) => {
-    console.log("Before sending:", JSON.stringify(dataI.investor));
+  async (investor: Investor , { rejectWithValue }) => {
+    console.log("Before sending:", JSON.stringify(investor));
     try {
       const response = await fetch("/api/register-investor", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(dataI),
+        body: JSON.stringify(investor),
       });
 
       if (!response.ok) {
@@ -83,14 +108,62 @@ export const readInvestors = createAsyncThunk("user/readInvestors", async (_, { 
   }
 });
 
-export const updateInvestor = createAsyncThunk("investor/updateInvestor",async (investor: Investor, { rejectWithValue }) => {
+// export const updateInvestor = createAsyncThunk("investor/updateInvestor",async (investor: Partial<Investor>, { rejectWithValue }) => {
+//     try {
+//       const response = await fetch(`/api/update-investor/${investor._id}`, {
+//         method: "PUT",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify(investor),
+//       });
+
+//       if (!response.ok) {
+//         try {
+//           const error = await response.json();
+//           return rejectWithValue(error.message || "Error desconocido");
+//         } catch {
+//           return rejectWithValue(`Unexpected response: ${response.statusText}`);
+//         }
+//       }
+
+//       const data = await response.json();
+//       return data as Investor;
+//     } catch (error: any) {
+//       return rejectWithValue(error.message || "Error en la conexión");
+//     }
+//   }
+// );
+
+export const updateInvestor = createAsyncThunk("investor/updateInvestor", async (investor: Partial<Investor>,{ rejectWithValue }) => {
     try {
+      const formData = new FormData();
+
+      // Añadir campos normales (excepto _id e imágenes)
+      Object.entries(investor).forEach(([key, value]) => {
+        if (key === '_id' || key === 'authImages') return; // no enviar aquí
+        if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Añadir bandera de validación si viene
+      if (investor.authImages && typeof (investor.authImages as any).validated !== 'undefined') {
+        formData.append('authImages.validated', String((investor.authImages as any).validated));
+      }
+
+      // Añadir imágenes (archivos)
+      if (investor.authImages) {
+        Object.entries(investor.authImages).forEach(([field, file]) => {
+          if (file instanceof File) { // El backend espera estos nombres exactos con prefijo authImages.
+            formData.append(`authImages.${field}`, file);
+          }
+        });
+      }
+
       const response = await fetch(`/api/update-investor/${investor._id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(investor),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -110,10 +183,11 @@ export const updateInvestor = createAsyncThunk("investor/updateInvestor",async (
   }
 );
 
+
 export const getInvestorWalletData = createAsyncThunk("user/getInvestorWalletData", async (userId: string, { rejectWithValue }) => {
   try {
     const response = await fetch(`/api/usersWallet/${userId}`, { method: "GET" });
-    
+
     if (!response.ok) {
       try {
         const error = await response.json();
@@ -132,31 +206,31 @@ export const getInvestorWalletData = createAsyncThunk("user/getInvestorWalletDat
 });
 
 export const getFaucetBalance = createAsyncThunk("user/getFaucetBalance", async (wallet: string, { rejectWithValue }) => {
-    try {
-      const response = await fetch("/api/users-balance", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({address: wallet}),
-      });
+  try {
+    const response = await fetch("/api/users-balance", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ address: wallet }),
+    });
 
-      if (!response.ok) {
-        try {
-          const error = await response.json();
-          return rejectWithValue(error.message || "Error desconocido");
-        } catch {
-          return rejectWithValue(`Unexpected response: ${response.statusText}`);
-        }
+    if (!response.ok) {
+      try {
+        const error = await response.json();
+        return rejectWithValue(error.message || "Error desconocido");
+      } catch {
+        return rejectWithValue(`Unexpected response: ${response.statusText}`);
       }
-
-      const data = await response.json();
-      console.log("Wallet:", wallet);
-      console.log("Faucet Balance Data:", data); // Debugging step
-      return data;
-    } catch (error) {
-      return rejectWithValue(error);
     }
+
+    const data = await response.json();
+    console.log("Wallet:", wallet);
+    console.log("Faucet Balance Data:", data); // Debugging step
+    return data;
+  } catch (error) {
+    return rejectWithValue(error);
+  }
 });
 
 export const getAllBuys = createAsyncThunk("user/getAllBuys", async (userId: string, { rejectWithValue }) => {
@@ -184,7 +258,7 @@ export const getAllBuys = createAsyncThunk("user/getAllBuys", async (userId: str
 
 export const getPayments = createAsyncThunk("user/getPayments", async (userId: string, { rejectWithValue }) => {
   try {
-      const response = await fetch(`/api/bonds-issuer-pending/${userId}`, { method: "GET" });
+    const response = await fetch(`/api/bonds-issuer-pending/${userId}`, { method: "GET" });
 
     if (!response.ok) {
       // const error = await response.json();
@@ -206,33 +280,33 @@ export const getPayments = createAsyncThunk("user/getPayments", async (userId: s
 });
 
 export const login = createAsyncThunk("user/login", async (log: { profile: string; email: string; password: string }, { rejectWithValue }) => {
-    console.log("Before sending:", JSON.stringify(log));
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(log),
-      });
+  console.log("Before sending:", JSON.stringify(log));
+  try {
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(log),
+    });
 
-      if (!response.ok) {
-        // const error = await response.json();
-        // return rejectWithValue(error.message);
-        try {
-          const error = await response.json();
-          return rejectWithValue(error.message || "Error desconocido");
-        } catch {
-          return rejectWithValue(`Unexpected response: ${response.statusText}`);
-        }
+    if (!response.ok) {
+      // const error = await response.json();
+      // return rejectWithValue(error.message);
+      try {
+        const error = await response.json();
+        return rejectWithValue(error.message || "Error desconocido");
+      } catch {
+        return rejectWithValue(`Unexpected response: ${response.statusText}`);
       }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      return rejectWithValue(error);
     }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return rejectWithValue(error);
   }
+}
 );
 
 export const faucetStable = createAsyncThunk("user/faucetStable", async (datos: { address: string, amount: number }, { rejectWithValue }) => {
@@ -289,6 +363,18 @@ const userSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(findInvestorByEmail.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(findInvestorByEmail.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.userLoged = action.payload;
+      })
+      .addCase(findInvestorByEmail.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload as string;
+      })
       .addCase(registerInvestor.pending, (state) => {
         state.status = "loading";
       })

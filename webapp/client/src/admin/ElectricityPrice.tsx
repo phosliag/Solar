@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import dayjs from 'dayjs';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { fetchPrecioLuz } from '../features/luzSlice';
+import { useNavigate } from 'react-router-dom';
 
 interface PrecioHora {
   hour: string;
@@ -13,6 +14,7 @@ interface PrecioHora {
 
 function Lux() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate()
   const { precios, fecha, status, error } = useAppSelector((state) => state.luz);
 
   useEffect(() => {
@@ -69,6 +71,12 @@ function Lux() {
           <p>No data available.</p>
         )
       )}
+
+      <button
+        className="btn btn-back mt-4 w-100"
+        onClick={() => navigate(-1)}>
+        Back
+      </button>
     </div>
   );
 }

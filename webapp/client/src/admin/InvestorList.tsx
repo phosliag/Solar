@@ -40,7 +40,7 @@ const InvestorList: React.FC = () => {
                   <button
                     className="btn"
                     onClick={() =>
-                      navigate(`/investor/${investor._id}`, { state: { investor } })
+                      navigate(`/investor/${investor._id}`, { state: { investor, admin: true } })
                     }
                   >
                     Ver detalles
@@ -51,6 +51,12 @@ const InvestorList: React.FC = () => {
           </tbody>
         </table>
         {investors.length === 0 && <p style={{ color: "var(--color-green-accent)" }}>No hay inversores disponibles.</p>}
+
+        <button
+          className="btn btn-back mt-4 w-100"
+          onClick={() => navigate(-1)}>
+          Back
+        </button>
       </div>
     </div>
   );

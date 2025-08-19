@@ -111,9 +111,11 @@ const RetailMarket = () => {
                   width: '100%'
                 }}>
                   <span className="h4 mb-0 text-primary">
-                    {selectedPanel.price?.toFixed(2)} €
+                    {typeof selectedPanel.price === 'object' && '$numberDecimal' in selectedPanel.price
+                      ? selectedPanel.price.$numberDecimal
+                      : String(selectedPanel.price)} €
                   </span>
-                  <span className="text-muted ms-2">per token</span>
+                  <span className="text-muted ms-2">of panel</span>
                 </div>
               </div>
             </div>
@@ -152,7 +154,9 @@ const RetailMarket = () => {
                 )}
                 {selectedPanel && (
                   <li>
-                    <strong>Price:</strong> <em>{selectedPanel.price?.toFixed(2)} €</em>
+                    <strong>Price:</strong> <em>{typeof selectedPanel.price === 'object' && '$numberDecimal' in selectedPanel.price
+                      ? selectedPanel.price.$numberDecimal
+                      : String(selectedPanel.price)} €</em>
                   </li>
                 )}
               </ul>

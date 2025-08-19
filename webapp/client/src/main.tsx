@@ -6,11 +6,14 @@ import App from "./App.tsx";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./app/store.ts";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <Provider store={store}>
-      <App />
-    </Provider>
-  </BrowserRouter>
+  <GoogleOAuthProvider clientId="312013973879-apas3349cqb1t9f5tfp82mckeqar88ml.apps.googleusercontent.com">
+    <BrowserRouter>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </BrowserRouter>
+  </GoogleOAuthProvider>
 );

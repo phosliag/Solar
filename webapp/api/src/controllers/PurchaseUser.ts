@@ -3,7 +3,6 @@ import { createPurchaseUser, getPurchaseUsers, getRetailPurchasedByUserId } from
 import { createPaymentInvoice, updatePaymentInvoiceById, getPaymentInvoicesByUserId } from "../db/PaymentInvoice";
 import express from "express";
 import { useApiBridge } from "../services/api-bridge.service";
-import { getEntityByEntityName, getEntityById } from "../db/ProjectObject";
 import { getIssuerById } from "../db/Issuer";
 import { getInvestorByEmail, getInvestorById } from "../db/Investor";
 import { UserInfo, UpcomingPayment, PurchaseBond } from "../models/Payment";
@@ -29,10 +28,10 @@ export const getAllPurchaseUsers = async (req: express.Request, res: express.Res
 export const purchase = async (req: express.Request, res: express.Response) => {
   try {
     console.log(req.body);
-    const purchaseData = req.body;
+    const {userId, panelId} = req.body;
 
     // Validate required fields
-    if (!purchaseData.userId || !purchaseData.reference) {
+    if (!userId || !panelId) {
       res.status(400).json({
         error: "Missing required fields",
         message: "userId and reference are required.",
@@ -42,7 +41,7 @@ export const purchase = async (req: express.Request, res: express.Response) => {
 
     // Find the solar panel by _id in the full collection
     // TODO: change reference to _id in back and front because the data in reference is the panel _id
-    const panel = await getSolarPanelById(purchaseData.reference);
+    const panel = await getSolarPanelById(panelId);
     if (!panel) {
       res.status(404).json({
         error: "Panel not found",
@@ -51,7 +50,7 @@ export const purchase = async (req: express.Request, res: express.Response) => {
       return;
     }
 
-    const user = await getInvestorById(purchaseData.userId);
+    const user = await getInvestorById(userId);
     if (!user) {
       res.status(404).json({
         error: "User not found",
@@ -64,19 +63,20 @@ export const purchase = async (req: express.Request, res: express.Response) => {
       nftTransfer = await useBlockchainService().transferNFT(user.walletAddress, panel.NftId);
 
       // Create the purchase record
-      const purchase = await createPurchaseUser({ userId: purchaseData.userId, reference: purchaseData.reference });
+      const purchase = await createPurchaseUser({ userId: userId, reference: panelId });
 
       // Update the owner of the solar panel using the reference as _id
-      updatedPanel = await updateSolarPanelById(purchaseData.reference, { owner: purchaseData.userId });
+      updatedPanel = await updateSolarPanelById(panelId, { owner: userId });
     } catch (error) {
       throw error
     }
 
+    await createPaymentInvoice({userId, panelId, payments:[{paid: false}]})
 
     res.status(201).json({
       message: "Purchase successful",
       panel: updatedPanel,
-      userId: purchaseData.userId,
+      userId: userId,
       purchase,
     });
     return;
@@ -90,60 +90,61 @@ export const purchase = async (req: express.Request, res: express.Response) => {
   }
 };
 
+// TODO: Revisar si es necesario!!!!!!!!
 export const getTokenListAndUpcomingPaymentsByInvestor = async (req: express.Request, res: express.Response) => {
-  try {
-    const { balance } = useBlockchainService();
-    const userId = req.params.userId;
-    const wallet = (await getInvestorById(userId)).walletAddress;
-    const paymentInvoices = await getPaymentInvoicesByUserId(userId);
-    const userResponse: UserInfo = { tokenList: [], upcomingPayment: [] };
+  // try {
+  //   const { balance } = useBlockchainService();
+  //   const userId = req.params.userId;
+  //   const wallet = (await getInvestorById(userId)).walletAddress;
+  //   const paymentInvoices = await getPaymentInvoicesByUserId(userId);
+  //   const userResponse: UserInfo = { tokenList: [], upcomingPayment: [] };
 
-    const today = dayjs();
+  //   const today = dayjs();
 
-    // recorremos los paymentInvoices. 
+  //   // recorremos los paymentInvoices. 
 
-    for (const invoice of paymentInvoices) {
-      const bond = await getEntityById(invoice.bonoId);
-      const balanceResponse = await balance(bond.tokenState[0].contractAddress, wallet, bond.tokenState[0].network);
+  //   for (const invoice of paymentInvoices) {
+  //     const bond = await getEntityById(invoice.bonoId);
+  //     const balanceResponse = await balance(bond.tokenState[0].contractAddress, wallet, bond.tokenState[0].network);
 
-      // tokenList: todos los registros sin importar 'paid'
-      userResponse.tokenList.push({
-        bondName: bond.itemName,
-        network: invoice.network,
-        amountAvaliable: invoice.amount,
-        price: (invoice.amount * Number(balanceResponse.message)) * bond.unitPrice,
-      });
+  //     // tokenList: todos los registros sin importar 'paid'
+  //     userResponse.tokenList.push({
+  //       bondName: bond.itemName,
+  //       network: invoice.network,
+  //       amountAvaliable: invoice.amount,
+  //       price: (invoice.amount * Number(balanceResponse.message)) * bond.unitPrice,
+  //     });
 
-      // upcomingPayment: pagos no pagados y cuya fecha sea en el año actual
-      for (const payment of invoice.payments) {
-        const paymentDate = dayjs(payment.timeStamp);
-        if (
-          !payment.paid &&
-          paymentDate.year() === today.year()
-        ) {
-          const paymentAmount = invoice.amount * bond.unitPrice * (bond.rate / 100);
-          userResponse.upcomingPayment.push({
-            bondName: bond.itemName,
-            paymentDate: paymentDate.format("D/MM/YYYY"),
-            paymentAmount,
-          });
-        }
-      }
-    }
-    res.status(200).json(userResponse);
-  } catch (error) {
-    res.status(500).json({ error: "Error al obtener los bonos del usuario" });
-  }
+  //     // upcomingPayment: pagos no pagados y cuya fecha sea en el año actual
+  //     for (const payment of invoice.payments) {
+  //       const paymentDate = dayjs(payment.timeStamp);
+  //       if (
+  //         !payment.paid &&
+  //         paymentDate.year() === today.year()
+  //       ) {
+  //         const paymentAmount = invoice.amount * bond.unitPrice * (bond.rate / 100);
+  //         userResponse.upcomingPayment.push({
+  //           bondName: bond.itemName,
+  //           paymentDate: paymentDate.format("D/MM/YYYY"),
+  //           paymentAmount,
+  //         });
+  //       }
+  //     }
+  //   }
+  //   res.status(200).json(userResponse);
+  // } catch (error) {
+  //   res.status(500).json({ error: "Error al obtener los bonos del usuario" });
+  // }
 };
 
 export const balanceFaucet = async (req: express.Request, res: express.Response) => {
   try {
     const data = req.body;
-
+    console.log(data)
     const balance = await useApiBridge.faucetBalance(data.address);
-
+    console.log(balance)
     let big = BigInt(balance.message);
-
+    console.log(big)
     let amountFinal: number = Number(big);
 
     console.log(amountFinal);

@@ -3,7 +3,7 @@ export interface SolarPanel {
     name: string; // Name of the bond
     location: string;
     reference: string;
-    price: number | undefined;
+    price: number | undefined | { $numberDecimal: string };
     state: string;
     owner: string;
     stimatedProduction: number | undefined; // Estimated production in kWh

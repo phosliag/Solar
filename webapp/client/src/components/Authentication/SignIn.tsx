@@ -1,8 +1,11 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector} from "../../app/hooks";
-import { login } from "../../features/userSlice";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { login, findInvestorByEmail } from "../../features/userSlice";
 import { toast, ToastContainer } from "react-toastify";
+import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
+import { GoogleJwtPayload } from "./SignUp";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -21,21 +24,63 @@ const SignIn = () => {
     document.title = "Sign In";
   }, []);
 
-  useEffect(() =>{
+  useEffect(() => {
     if (user && error === null) {
-      if (userProfile === 'investor'){
-        navigate('/investor-dash', {state: {user}})
+      if (userProfile === 'investor') {
+        navigate('/investor-dash', { state: { user } })
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, user])
+
+  // const googleSignIn = useGoogleLogin({
+  //   onSuccess: async (credentialRes) => {
+  //     try {
+  //       const decoded: any = jwtDecode(credentialRes.access_token || "");
+  //       const emailFromGoogle: string | undefined = decoded?.email;
+  //       console.log('Email:', emailFromGoogle)
+  //       if (!emailFromGoogle) {
+  //         toast.error("No se pudo obtener el email de Google");
+  //         return;
+  //       }
+  //       const investor = await dispatch(findInvestorByEmail(emailFromGoogle)).unwrap();
+  //       toast.success("Inicio de sesión con Google exitoso");
+  //       navigate('/investor-dash', { state: { user: investor } });
+  //     } catch (e: any) {
+  //       toast.error(e || "No se encontró un usuario asociado a ese email");
+  //     }
+  //   },
+  //   onError: () => toast.error("Fallo el inicio de sesión con Google"),
+  // });
+
+  const googleSignIn = useGoogleLogin({
+    flow: 'auth-code',          // Usamos flujo de código con redirect
+    redirect_uri: window.location.origin + '/auth/callback', // Página que recibirá el token
+    onSuccess: async (credentialRes) => {
+      try {
+        const decoded: any = jwtDecode(credentialRes.code || ''); // en redirect se usa `code`
+        const emailFromGoogle: string | undefined = decoded?.email;
+        if (!emailFromGoogle) {
+          toast.error('No se pudo obtener el email de Google');
+          return;
+        }
+
+        const investor = await dispatch(findInvestorByEmail(emailFromGoogle)).unwrap();
+        toast.success('Inicio de sesión con Google exitoso');
+        navigate('/investor-dash', { state: { user: investor } });
+      } catch (e: any) {
+        toast.error(e || 'No se encontró un usuario asociado a ese email');
+      }
+    },
+    onError: () => toast.error('Fallo el inicio de sesión con Google'),
+  });
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     console.log(userProfile);
-    let  message, user = undefined
+    let message, user = undefined
     if (userProfile === 'investor') {
-      ({message, user} = await dispatch(login({profile:userProfile, email, password})).unwrap())
+      ({ message, user } = await dispatch(login({ profile: userProfile, email, password })).unwrap())
     } else if (userProfile === 'admin') {
       if (email === 'admin' && password === '123456') {
         navigate('/admin-dash')
@@ -61,6 +106,47 @@ const SignIn = () => {
       <div className="solar-panel-section mt-3">
         <form className="container row mt-4" style={{ textAlign: "left" }}>
           <h2 className="mb-4" style={{ textAlign: "center", color: "var(--color-green-main)" }}>SIGN IN</h2>
+
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+            {/* <button className="btn" type="button"
+              onClick={() => googleSignIn()}
+              style={{
+                padding: "10px 25px",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <img
+                src="/images/Google_Favicon_2025.svg"
+                alt="Google"
+                style={{ width: "20px", height: "20px" }}
+              />
+              Sign in with Google
+            </button> */}
+            <GoogleLogin
+              onSuccess={
+                (credentialRes) => {
+                  console.log(credentialRes)
+                  const decodedInfo: GoogleJwtPayload = jwtDecode(credentialRes.credential || '')
+                  console.log('Email: ', decodedInfo.email)
+                  dispatch(findInvestorByEmail(decodedInfo.email)).unwrap();
+                  navigate("/investor-dash");
+                }
+              }
+              onError={() => console.log('failed')}
+              width={'100px'} theme="outline" size="large" shape="rectangular" text="signin_with" locale="en"/>
+
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", margin: "20px 0" }}>
+            <hr style={{ flex: 1, border: "none", borderTop: "1px solid #000" }} />
+            <span style={{ margin: "0 10px", color: "#666" }}>or</span>
+            <hr style={{ flex: 1, border: "none", borderTop: "1px solid #000" }} />
+          </div>
+
           <div className="col-sm mb-3 d-flex justify-content-space-beetwen ">
             <label className="form-label">User Profile:</label>
             <div className="form-check pr-4" style={{ marginRight: "20px", marginLeft: "20px" }}>

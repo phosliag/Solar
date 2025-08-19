@@ -22,6 +22,13 @@ const app = express();
 // Setup Swagger documentation
 setupSwagger(app);
 
+// 1️⃣ Middleware COOP/COEP para desarrollo (antes de rutas y CORS)
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+  next();
+});
+
 const corsOptions = {
   origin: `http://${host}:5173`, // Cambia esto por el dominio de tu frontend en producción
   methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
@@ -31,6 +38,9 @@ app.use(cors(corsOptions));
 app.use(compression());
 app.use(bodyParser.json());
 app.use("/api", router());
+
+// Serve uploaded documents (stored at the same level as src)
+app.use('/documents', express.static(path.resolve(__dirname, "../documents")));
 
 // Servir los archivos estáticos de React
 app.use(express.static(path.resolve(__dirname, "../../client/dist/")));

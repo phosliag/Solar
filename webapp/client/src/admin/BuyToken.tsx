@@ -9,7 +9,7 @@ import { readPanels } from "../features/solarPanelSlice";
 export interface PurchaseData {
   _id?: undefined
   userId: string;
-  reference: string;
+  panelId: string;
 }
 
 const BuyToken = () => {
@@ -26,7 +26,7 @@ const BuyToken = () => {
   const [purchaseData, setPurchaseData] = useState<PurchaseData>({
     _id: undefined,
     userId: "",
-    reference: "",
+    panelId: "",
   });
   const [isLoading, setIsLoading] = useState(false); // State for loader
   const [showSuccessModal, setShowSuccessModal] = useState(false); // State for success/error modal
@@ -140,7 +140,7 @@ const BuyToken = () => {
               id="investToken"
               name="investToken"
               className="form-control bg-form"
-              value={purchaseData.reference}
+              value={purchaseData.panelId}
               onChange={handleData}>
               <option value="" disabled>
                 Select token
@@ -189,7 +189,7 @@ const BuyToken = () => {
                   <strong>User:</strong> <em>{purchaseData?.userId}</em>
                 </li>
                 <li>
-                  <strong>Token Sent Name:</strong> <em>{purchaseData?.reference}</em>
+                  <strong>Token Sent Name:</strong> <em>{purchaseData?.panelId}</em>
                 </li>
               </ul>
 

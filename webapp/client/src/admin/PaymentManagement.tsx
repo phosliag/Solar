@@ -27,7 +27,9 @@ const PaymentManagement = () => {
   const pastDuePayments = useAppSelector((state) => state.user.pastDuePayments);
 
   const [selectedPanel, setSelectedPanel] = useState<SolarPanel | null>(null);
-  const payBatch: string[] = [];
+
+  // CAMBIO: payBatch ahora es estado React para que checkbox funcione
+  const [payBatch, setPayBatch] = useState<string[]>([]);
 
   const [productionSummary, setProductionSummary] = useState<MonthlyProduction[]>([]);
   const [loadingProduction, setLoadingProduction] = useState(false);
@@ -35,6 +37,7 @@ const PaymentManagement = () => {
 
   const handlePanel = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPanel(panels.find((panel) => panel.name === e.target.value) || null);
+    setPayBatch([]); // resetear selección al cambiar panel
   };
 
   const getCsvUrlForYear = (year: string) => `/mockPlacas/produccion_placas_luz_${year}.csv`;
@@ -113,15 +116,11 @@ const PaymentManagement = () => {
       .finally(() => setLoadingProduction(false));
   }, [selectedPanel]);
 
+  // CAMBIO: actualizar opción checkbox con estado React
   function handleAddToPay(value: string) {
-    if (payBatch.includes(value)) {
-      const filtered = payBatch.filter((item) => item !== value);
-      payBatch.length = 0;
-      payBatch.push(...filtered);
-    } else {
-      payBatch.push(value);
-    }
-    console.log(payBatch);
+    setPayBatch((prev) =>
+      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+    );
   }
 
   async function handlePay(payments: { userId: string; panelId: string; network: string }[]) {
@@ -132,7 +131,7 @@ const PaymentManagement = () => {
         await dispatch(updatePayment(payment));
       }
       await dispatch(getPayments(user?._id!));
-      payBatch.length = 0;
+      setPayBatch([]);
     } catch (e) {
       console.error("Error procesando pagos:", e);
     } finally {
@@ -140,8 +139,10 @@ const PaymentManagement = () => {
     }
   }
 
-  // Para el botón pagar por fila, simularemos userId único con combinación de inversor+fecha, ya que no tenemos userId real en producción calculada
-  // Y usaremos panelId y una cadena fija para network, debes adaptar según lógica real para pagos
+  const totalSelectedAmount = productionSummary
+  .filter(({ inversor, fecha }) => payBatch.includes(`${inversor}-${fecha}`))
+  .reduce((acc, item) => acc + item.totalEnEuro, 0);
+
 
   return (
     <div className="solar-panel-section mt-4" style={{ position: "relative" }}>
@@ -153,6 +154,7 @@ const PaymentManagement = () => {
 
       <h2 className="mb-3">PAYMENT MANAGEMENT</h2>
 
+      // TODO - Quitar la seleccion
       <h2 className="section-title mt-4" style={{ alignSelf: "start" }}>
         Token Selection:
       </h2>
@@ -178,11 +180,10 @@ const PaymentManagement = () => {
       </h4>
       <p className="text-danger">**Only if there are pending payments</p>
       <p>
-        Total amount to pay:{" "}
-        {upcomingPayments.find((p) => p.bondName === selectedPanel?.name)?.amount || 0}
+        Total amount to pay: {totalSelectedAmount.toFixed(2)} €
         <button
           className="btn-pay-now"
-          style={{ marginLeft: "30px" }}
+          style={{ marginLeft: 30 }}
           disabled={isLoading}
           onClick={() => {
             const payment = upcomingPayments.find((p) => p.bondName === selectedPanel?.name);
@@ -246,7 +247,7 @@ const PaymentManagement = () => {
                       type="checkbox"
                       checked={payBatch.includes(rowId)}
                       onChange={() => handleAddToPay(rowId)}
-                      style={{ textAlign: "center", marginRight: "10px" }}
+                      style={{ textAlign: "center", marginRight: 10 }}
                     />
                     {inversor}
                   </td>
@@ -280,11 +281,8 @@ const PaymentManagement = () => {
         </table>
       )}
 
-
       <h2 className="section-title mt-4">Next Payments:</h2>
       <table className="table-hl">
-        {/* border={1}
-        style={{ borderCollapse: "collapse", width: "100%", textAlign: "center", backgroundColor: "#d9e8fc" }} */}
         <thead style={{ backgroundColor: "#7ba6e9", color: "white" }}>
           <tr>
             <th>Investor</th>

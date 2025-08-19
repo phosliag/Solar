@@ -9,6 +9,7 @@ produccion_anual = {
     2022: 2.1,
     2023: 2.2,
     2024: 2.3,
+    2025: 2.4  # Mock estimado para este año
 }
 
 # Intervalo precios luz €/kWh por año (aprox)
@@ -18,6 +19,7 @@ precio_luz_anual = {
     2022: (0.13, 0.18),
     2023: (0.14, 0.20),
     2024: (0.15, 0.22),
+    2025: (0.16, 0.24)  # Mock estimado para este año
 }
 
 def generar_datos_diarios(year):

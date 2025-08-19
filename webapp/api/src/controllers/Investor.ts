@@ -7,6 +7,9 @@ import { CREATE_ACCOUNT_MULTIPLE } from "../utils/Constants";
 import { useApiBridge } from "../services/api-bridge.service";
 import { createAccount } from "../services/api-smart-account.service";
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
 
 const SALT_ROUNDS = 10;
 
@@ -34,31 +37,18 @@ export const registerInvestor = async (req: express.Request, res: express.Respon
   let foundInvestorId = null;
 
   try {
-    const { createCompany } = useBlockchainService();
     console.log("📩 Recibido en req.body:", req.body);
-    const investor = req.body.investor;
-    const particular = req.body.particular;
+    const investor = req.body;
 
     // Validación de campos requeridos en funcion de la figura del inversor
-    if (particular) {
-      if (!investor.country || !investor.name || !investor.surname ||
-        !investor.idCard || !investor.email || !investor.password) {
-        res.status(400).json({
-          error: "Missing required fields",
-          message: "All required fields must be provided.",
-        });
-        return;
-      }
-    } else {
-      if (!investor.entityLegalName || !investor.country || !investor.taxIdNumber || !investor.website ||
-        !investor.name || !investor.surname || !investor.idCard || !investor.email || !investor.password) {
-        res.status(400).json({
-          error: "Missing required fields",
-          message: "All required fields must be provided.",
-        });
-        return;
-      }
+    if (!investor || !investor.name || !investor.surname || !investor.email ) {
+      res.status(400).json({
+        error: "Missing required fields",
+        message: "All required fields must be provided.",
+      });
+      return;
     }
+
 
     console.log("✅ Validación de datos correcta");
     // Creación del nuevo usuario
@@ -126,52 +116,133 @@ export const registerInvestor = async (req: express.Request, res: express.Respon
 
 
 /**
+ * Obtener un inversor por email
+ */
+export const getInvestorByEmailController = async (req: express.Request, res: express.Response) => {
+  try {
+    const emailRaw = (req.query.email as string) || (req.body && (req.body as any).email);
+    if (!emailRaw || typeof emailRaw !== 'string') {
+      res.status(400).json({
+        error: "Missing email",
+        message: "The 'email' query parameter is required."
+      });
+      return;
+    }
+
+    const email = emailRaw.toLowerCase();
+    const investor = await getInvestorByEmail(email);
+    if (!investor) {
+      res.status(404).json({
+        error: "Investor not found",
+        message: "No investor found with the provided email."
+      });
+      return;
+    }
+
+    res.status(200).json(investor);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Internal server error",
+      message: "An unexpected error occurred while retrieving the investor."
+    });
+  }
+};
+
+/**
  * Actualiza los datos de un inversor por su ID
  */
 export const updateInvestor = async (req: express.Request, res: express.Response) => {
   const investorId = req.params.id;
-  const update = req.body;
+  console.log('update request received for id', investorId);
 
-  try {
-    // Buscar el inversor
-    const investor = await getInvestorById(investorId);
-    if (!investor) {
-      res.status(404).json({
-        error: "Investor not found",
-        message: "No investor found with the provided ID."
-      });
-      return
-    }
-
-    // Si se va a actualizar la contraseña, cifrarla
-    if (update.password) {
-      // Solo hashea si la contraseña es diferente
-      const same = await bcrypt.compare(update.password, investor.password);
-      if (!same) {
-        const salt = await bcrypt.genSalt(SALT_ROUNDS);
-        update.password = await bcrypt.hash(update.password, salt);
-      } else {
-        delete update.password; // No la actualices si es igual
+  // Configure storage to save files into ../documents relative to this file (same level as src)
+  const storage = multer.diskStorage({
+    destination: (req_: any, file: any, cb: any) => {
+      const documentsDir = path.resolve(__dirname, "../../documents");
+      try {
+        if (!fs.existsSync(documentsDir)) {
+          fs.mkdirSync(documentsDir, { recursive: true });
+        }
+      } catch (e) {
+        return cb(e as Error, documentsDir);
       }
+      cb(null, documentsDir);
+    },
+    filename: (req_: any, file: any, cb: any) => {
+      const ext = path.extname(file.originalname) || "";
+      const sanitizedField = file.fieldname.replace(/[^a-zA-Z0-9_.-]/g, "_");
+      cb(null, `${investorId}-${sanitizedField}-${Date.now()}${ext}`);
+    }
+  });
+
+  const upload = multer({ storage });
+
+  // Accept specific image fields
+  const fields = upload.fields([
+    { name: 'authImages.frontID', maxCount: 1 },
+    { name: 'authImages.backID', maxCount: 1 },
+    { name: 'authImages.residenceProof', maxCount: 1 },
+  ]);
+
+  fields(req, res, async (err: any) => {
+    if (err) {
+      res.status(400).json({ error: 'Upload error', message: err.message || String(err) });
+      return;
     }
 
-    // Actualiza los campos restantes
-    const updatedInvestor = await updateInvestorById(investorId, update);
+    try {
+      const updateDoc: Record<string, any> = {};
 
-    res.status(200).json(updatedInvestor);
-  } catch (error) {
-    // Error de duplicado en campos 'email', 'taxIdNumber', 'idCard', etc.
-    if (error instanceof MongoServerError && error.code === 11000) {
-      res.status(400).json({
-        error: "Duplicate field value",
-        message: "A record already exists with some unique value you entered."
+      // Copy non-file fields from the form data
+      if (req.body) {
+        Object.entries(req.body).forEach(([key, value]) => {
+          if (key === '_id') return;
+          // Allow only the validated flag within authImages from body
+          if (key.startsWith('authImages.') && key !== 'authImages.validated') return;
+          updateDoc[key] = value;
+        });
+      }
+
+      // Handle uploaded files and set URLs in respective authImages attributes
+      const files = (req as any).files as { [fieldname: string]: { filename: string }[] } | undefined;
+      if (files) {
+        const fieldMap: Record<string, string> = {
+          'authImages.frontID': 'frontID',
+          'authImages.backID': 'backID',
+          'authImages.residenceProof': 'residenceProof',
+        };
+
+        for (const [formField, imageKey] of Object.entries(fieldMap)) {
+          const arr = files[formField];
+          if (arr && arr[0]) {
+            const fileUrl = `/documents/${arr[0].filename}`;
+            updateDoc[`authImages.${imageKey}`] = fileUrl;
+          }
+        }
+      }
+
+      // Normalize validated boolean if present
+      if (typeof updateDoc['authImages.validated'] !== 'undefined') {
+        const val = updateDoc['authImages.validated'];
+        updateDoc['authImages.validated'] = (val === true || val === 'true');
+      }
+
+      const updatedInvestor = await updateInvestorById(investorId, updateDoc as any);
+      res.status(200).json(updatedInvestor);
+    } catch (error) {
+      if (error instanceof MongoServerError && error.code === 11000) {
+        res.status(400).json({
+          error: "Duplicate field value",
+          message: "A record already exists with some unique value you entered."
+        });
+        return;
+      }
+      console.error(error);
+      res.status(500).json({
+        error: "Update failed",
+        message: "An unexpected error occurred while updating the investor."
       });
-      return
     }
-    console.error(error);
-    res.status(500).json({
-      error: "Update failed",
-      message: "An unexpected error occurred while updating the investor."
-    });
-  }
+  });
 }

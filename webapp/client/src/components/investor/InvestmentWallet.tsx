@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { getInvestorWalletData, getFaucetBalance } from "../../features/userSlice";
 import { PaymentRecord } from "../../admin/EnterpriseWallet";
 import { data, useNavigate } from "react-router-dom";
-import { generatePaymentRecords } from "../../utils";
 import { getTokenListAndUpcomingPaymentsByInvestor } from "../../features/solarPanelSlice";
 
 const InvestmentWallet: React.FC = () => {
@@ -54,7 +53,7 @@ const InvestmentWallet: React.FC = () => {
 
   useEffect(() => {
     // dispatch(readBonds(userId || ""));
-    
+
     const fetchData = async () => {
       try {
         console.log(userId + " USER ID");
@@ -62,10 +61,10 @@ const InvestmentWallet: React.FC = () => {
         // setWalletData(data);
         console.log(user?.walletAddress + " WALLET DATA");
 
-          const dataFaucet = await dispatch(getFaucetBalance(user?.walletAddress!)).unwrap();
-          console.log(dataFaucet + " BALANCE");
-          setBalanceData(dataFaucet);
-        
+        const dataFaucet = await dispatch(getFaucetBalance(user?.walletAddress!)).unwrap();
+        console.log(dataFaucet + " BALANCE");
+        setBalanceData(dataFaucet);
+
       } catch (error) {
         console.error('Error fetching wallet data:', error);
       }
@@ -98,65 +97,65 @@ const InvestmentWallet: React.FC = () => {
           </div>
         </div>
       ) : (
-      <>
-        <div>
-          <h3 className="section-title mt-4">Account Balance:</h3>
-          <strong>Total Available Balance:</strong> {balanceData}
-      </div>
-      <div className="collapse" id="balance-collapse">
-          <ul>
-            <li>
-              <strong>Alastria:</strong> {sumByNetwork.ALASTRIA}
-            </li>
-            <li>
-              <strong>Amoy:</strong> {sumByNetwork.AMOY}
-            </li>
-          </ul>
-        </div>
+        <>
+          <div>
+            <h3 className="section-title mt-4">Account Balance:</h3>
+            <strong>Total Available Balance:</strong> {balanceData}
+          </div>
+          <div className="collapse" id="balance-collapse">
+            <ul>
+              <li>
+                <strong>Alastria:</strong> {sumByNetwork.ALASTRIA}
+              </li>
+              <li>
+                <strong>Amoy:</strong> {sumByNetwork.AMOY}
+              </li>
+            </ul>
+          </div>
 
-      <h3 className="section-title mt-4">Token List:</h3>
-      {tokenList?.map((token) => (
-        <div key={token.bondName} className="mb-2">
-          <strong>"{token.bondName}" Token holdings:</strong> {token.amountAvaliable}
-        </div>
-      ))}
-
-      <h3 className="section-title mt-4">Upcoming payments</h3>
-      {upcomingPayment && upcomingPayment.length > 0 ? (
-        <table
-          border={1}
-          className="table-hl"
-          style={{ borderCollapse: "collapse", width: "100%", textAlign: "center" }}>
-          <thead className="admin-table-header">
-          <tr>
-            <th>Bond Name</th>
-            <th>Payment Date</th>
-            <th>Payment Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {upcomingPayment?.map((bond, index) => (
-            <tr key={index} className="admin-table-cell">
-              <td>{bond.bondName}</td>
-              <td>{bond.paymentDate}</td>
-              <td>{bond.paymentAmount}</td>
-            </tr>
+          <h3 className="section-title mt-4">Token List:</h3>
+          {tokenList?.map((token) => (
+            <div key={token.bondName} className="mb-2">
+              <strong>"{token.bondName}" Token holdings:</strong> {token.amountAvaliable}
+            </div>
           ))}
-        </tbody>
-      </table>
-      ) : (
-        <p>No upcoming payments available</p>
-      )}
-      <div className="position-absolute top-0 end-0 m-3" style={{ display: "flex", justifyContent: "end" }}>
-        <button
-          type="button"
-          className="btn btn-back col-sm-2"
-          onClick={() => navigate(-1)}
-          style={{ width: "90px" }}>
-          Cancel
-        </button>
-      </div>
-      </>
+
+          <h3 className="section-title mt-4">Upcoming payments</h3>
+          {upcomingPayment && upcomingPayment.length > 0 ? (
+            <table
+              border={1}
+              className="table-hl"
+              style={{ borderCollapse: "collapse", width: "100%", textAlign: "center" }}>
+              <thead className="admin-table-header">
+                <tr>
+                  <th>Bond Name</th>
+                  <th>Payment Date</th>
+                  <th>Payment Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {upcomingPayment?.map((bond, index) => (
+                  <tr key={index} className="admin-table-cell">
+                    <td>{bond.bondName}</td>
+                    <td>{bond.paymentDate}</td>
+                    <td>{bond.paymentAmount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No upcoming payments available</p>
+          )}
+          <div className="position-absolute top-0 end-0 m-3" style={{ display: "flex", justifyContent: "end" }}>
+            <button
+              type="button"
+              className="btn btn-back col-sm-2"
+              onClick={() => navigate(-1)}
+              style={{ width: "90px" }}>
+              Cancel
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

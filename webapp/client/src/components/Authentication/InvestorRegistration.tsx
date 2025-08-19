@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { registerInvestor } from "../../features/userSlice";
 import { europeanCountries } from "../../utils";
@@ -12,9 +12,15 @@ export interface Investor {
   idCard: string;
   country: string;
   email: string;
-  password: string;
+  password?: string;
   walletAddress: string;
   accounts: any;
+  authImages?: {
+    validated: boolean
+    frontID?: Buffer | string | File;
+    backID?: Buffer | string | File;
+    residenceProof?: Buffer | string | File;
+  };
 }
 
 const InvestorRegistration = () => {
@@ -35,7 +41,7 @@ const InvestorRegistration = () => {
   const [confimPass, setConfirmPass] = useState("");
   const [errorPass, setErrorPass] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const error = useAppSelector((state) =>  state.user.error) 
+  const error = useAppSelector((state) => state.user.error)
 
 
   useEffect(() => {
@@ -83,22 +89,22 @@ const InvestorRegistration = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-  
+
     if (pass !== confimPass || pass === "") {
       setErrorPass(true);
       console.log("Error: Passwords don't match");
       setIsLoading(false);
       return;
     }
-  
+
     if (!isInvestorValid(investor)) {
       console.log(" Error: Todos los campos deben estar completos.");
       setIsLoading(false);
       return;
-    }  
+    }
     try {
       console.log("🚀 Enviando datos:", investor);
-      const user = await dispatch(registerInvestor({ investor, particular: true })).unwrap();
+      const user = await dispatch(registerInvestor(investor)).unwrap();
       console.log("Usuario creado:", user);
       setInvestor(user);
     } catch (error) {
@@ -108,7 +114,7 @@ const InvestorRegistration = () => {
     }
   };
 
-  
+
   return (
     <>
       {isLoading && (
@@ -135,7 +141,7 @@ const InvestorRegistration = () => {
         </div>
       )}
       <form onSubmit={handleSubmit} className="container row mt-4" style={{ textAlign: "left" }}>
-        <h2 className="mb-4" style={{ textAlign: "center" }}>INVESTOR REGISTRATION</h2>
+        {/* <h2 className="mb-4" style={{ textAlign: "center" }}>INVESTOR REGISTRATION</h2> */}
         <div className="col-sm-4 mb-3">
           <label htmlFor="name" className="form-label">
             Name:
@@ -245,13 +251,16 @@ const InvestorRegistration = () => {
           />
         </div>
         {errorPass && <p className="text-danger">Password doesn't match</p>}
+
+        <div className="d-flex justify-content-end gap-3"><p>You aleady have an account? </p> <Link to={'/user-access'}>Sign in</Link></div>
+
         <div className="container-md row m-3" style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
-          <button type="submit" className="btn-pay-now col-sm-4">
+          <button type="submit" className="btn btn-pay-now col-sm-4">
             Confirm
           </button>
           <button
             type="button"
-            className="btn-back col-sm-2"
+            className="btn btn-back col-sm-2"
             onClick={() => navigate("/")}
           >
             Cancel

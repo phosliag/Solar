@@ -8,16 +8,17 @@ export interface IInvestor {
   website?: string;
   name: string;
   surname: string;
-  country: string;
-  idCard: string;
+  country?: string;
+  idCard?: string;
   email: string;
-  password: string;
+  password?: string;
   walletAddress?: string;
   accounts?: any;
-  authImages: {
-    frontID?: Buffer | string; 
-    backID?: Buffer | string; 
-    residenceProof?: Buffer | string; 
+  authImages?: {
+    validated: boolean;
+    frontID?: Buffer | string;
+    backID?: Buffer | string;
+    residenceProof?: Buffer | string;
   }
   createdAt?: Date;
   updatedAt?: Date;
@@ -31,12 +32,18 @@ const InvestorSchema = new mongoose.Schema({
   website: { type: String },
   name: { type: String, required: true },
   surname: { type: String, required: true },
-  country: { type: String, required: true },
-  idCard: { type: String, required: true, unique: true },
+  country: { type: String },
+  idCard: { type: String, unique: true },
   email: { type: String, required: true, unique: true, lowercase: true },
-  password: { type: String, required: true, minlength: 6 },
+  password: { type: String, minlength: 6 },
   walletAddress: { type: String },
   accounts: { type: Object },
+  authImages: {
+    validated: { type: Boolean, default: false },
+    frontID: { type: mongoose.Schema.Types.Mixed },
+    backID: { type: mongoose.Schema.Types.Mixed },
+    residenceProof: { type: mongoose.Schema.Types.Mixed },
+  },
 }, { timestamps: true });
 
 
@@ -64,7 +71,7 @@ export const InvestorModel = mongoose.model<IInvestor>("Investor", InvestorSchem
 // 📌 Funciones CRUD básicas
 export const getInvestors = () => InvestorModel.find();
 export const getInvestorById = (id: string) => InvestorModel.findById(id);
-export const getInvestorByEmail = (email: string) => InvestorModel.findOne({email});
+export const getInvestorByEmail = (email: string) => InvestorModel.findOne({ email });
 export const createInvestor = async (values: Partial<IInvestor>) => await new InvestorModel(values).save();
 export const deleteInvestorById = (id: string) => InvestorModel.findOneAndDelete({ _id: id });
 export const updateInvestorById = (id: string, update: Partial<IInvestor>) => InvestorModel.findByIdAndUpdate(id, update, { new: true });

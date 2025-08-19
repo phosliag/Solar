@@ -18,7 +18,7 @@ const SolarPanelSchema: Schema = new Schema({
   name: { type: String, required: true, unique: true },
   location: { type: String, required: true },
   reference: { type: String, required: true, unique: true },
-  price: { type: Number, required: true },
+  price: { type: Schema.Types.Decimal128, required: true },
   state: { type: String, required: true },
   owner: { type: String, required: false },
   stimatedProduction: { type: Number, required: true },

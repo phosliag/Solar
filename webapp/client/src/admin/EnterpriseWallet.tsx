@@ -167,7 +167,11 @@ const EnterpriseWallet = () => {
                       <td>{panel.name}</td>
                       <td>{panel.reference}</td>
                       <td>{panel.owner}</td>
-                      <td>{panel.price}</td>
+                      <td>
+                        {typeof panel.price === 'object' && '$numberDecimal' in panel.price
+                          ? panel.price.$numberDecimal
+                          : String(panel.price)} €
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -30,7 +30,7 @@ const BondDetails = () => {
   // Use the correct PurchaseData type
   const [purchaseData, setPurchaseData] = useState<PurchaseData>({
     userId: user._id || '',
-    reference: solarPanel._id || '', // Envia el _id de la placa
+    panelId: solarPanel._id || '', // Envia el _id de la placa
   });
 
   useEffect(() => {
@@ -239,7 +239,10 @@ const BondDetails = () => {
           </h4>
           <ul>
             <li>
-              <strong>Price:</strong> <em>{solarPanel.price}</em>
+              <strong>Price:</strong> <em>
+                {typeof solarPanel.price === 'object' && '$numberDecimal' in solarPanel.price
+                  ? solarPanel.price.$numberDecimal : String(solarPanel.price)} €
+              </em>
             </li>
             <li>
               <strong>Stimated Production:</strong> <em>{solarPanel.stimatedProduction}</em>

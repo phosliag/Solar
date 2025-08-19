@@ -71,10 +71,9 @@ const TransactionTable = () => {
                         <Dropdown.Item onClick={() => setTrxTypeFilter("")} active={trxTypeFilter === ""}>All Types</Dropdown.Item>
                         {[
                           "purchaseBond", "redeemBond", "callContractMethodController",
-                          "executeContractMethodController", "mintBond", "bridge", "burn",
-                          "createBond", "requestTransfer", "balance", "getFaucetBalance",
-                          "faucet", "requestStable", "createAccountMultiple",
-                          "createIndividualAccountRetry"
+                          "executeContractMethodController", "mintBond", "createBond",
+                          "requestTransfer", "balance", "getFaucetBalance",
+                          "faucet", "requestStable", "createAccount"
                         ].map(type => (
                           <Dropdown.Item
                             key={type}
@@ -88,7 +87,7 @@ const TransactionTable = () => {
                     </Dropdown>
                   </div>
                 </th>
-                <th className="admin-table-header" style={{width: "100px"}}>Date</th>
+                <th className="admin-table-header" style={{ width: "100px" }}>Date</th>
                 <th className="admin-table-header">trx id</th>
               </tr>
             </thead>
@@ -98,7 +97,7 @@ const TransactionTable = () => {
                   <tr key={trx._id}>
                     <td className="admin-table-cell">{trx.userId}</td>
                     <td className="admin-table-cell">{trx.trx_type}</td>
-                    <td className="admin-table-cell" style={{width: "100px"}}>{new Date(trx.timestamp).toLocaleDateString()}</td>
+                    <td className="admin-table-cell" style={{ width: "100px" }}>{new Date(trx.timestamp).toLocaleDateString()}</td>
                     <td className="admin-table-cell">
                       <a
                         href={`https://b-network.alastria.izer.tech/tx/${trx.trx}`}

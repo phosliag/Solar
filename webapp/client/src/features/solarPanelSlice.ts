@@ -154,7 +154,7 @@ export const addRetailMarketPanel = createAsyncThunk("retailMarket/add", async (
 });
 
 // --- REGISTER PURCHASE PANEL LOGIC ---
-export const registerPurchase = createAsyncThunk("solarPanel/registerPurchase", async (userData: { userId: string; reference: string }, { rejectWithValue }) => {
+export const registerPurchase = createAsyncThunk("solarPanel/registerPurchase", async (userData: { userId: string; panelId: string }, { rejectWithValue }) => {
   try {
     const response = await fetch("/api/register-purchase", {
       method: "POST",
