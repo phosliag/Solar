@@ -7,6 +7,7 @@ interface SolarPanelState {
   panelInvestors: any[] | null;
   tokenList: any[] | null;
   upcomingPayment: any[] | null;
+  invoices: any[] | null;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null | undefined;
 }
@@ -17,6 +18,7 @@ const initialState: SolarPanelState = {
   panelInvestors: null,
   tokenList: null,
   upcomingPayment: null,
+  invoices: null,
   status: "idle",
   error: undefined,
 };
@@ -241,7 +243,8 @@ export const getTokenListAndUpcomingPaymentsByInvestor = createAsyncThunk(
       const data = await response.json();
       return {
         tokenList: data.tokenList,
-        upcomingPayment: data.upcomingPayment
+        upcomingPayment: data.upcomingPayment,
+        invoices: data.invoices || []
       };
     } catch (error) {
       return rejectWithValue(error);
@@ -252,7 +255,7 @@ export const getTokenListAndUpcomingPaymentsByInvestor = createAsyncThunk(
 // --- UPDATE PAYMENT ---
 export const updatePayment = createAsyncThunk(
   "solarPanel/updatePayment",
-  async (formData: {userId: string, panelId: string, network: string}, { rejectWithValue }) => {
+  async (formData: {userId: string, panelId: string, amount: number, timeStamp: string}, { rejectWithValue }) => {
     try {
       const response = await fetch("/api/panels-update-payment", {
         method: "POST",
@@ -386,6 +389,7 @@ const solarPanelSlice = createSlice({
         state.status = "succeeded";
         state.tokenList = action.payload.tokenList;
         state.upcomingPayment = action.payload.upcomingPayment;
+        state.invoices = action.payload.invoices;
       })
       .addCase(getTokenListAndUpcomingPaymentsByInvestor.rejected, (state, action) => {
         state.status = "failed";

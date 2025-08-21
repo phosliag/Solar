@@ -139,7 +139,7 @@ const InvestorDetails: React.FC = () => {
           }
         `}
       </style>
-      <div className="solar-panel-section mt-3 p-4" style={{ maxWidth: 680, position: 'relative' }}>
+      <div className="solar-panel-section mt-3 p-4" style={{ width: 750, position: 'relative' }}>
         {/* Edit button top right */}
         <button
           className="btn btn-pay-now position-absolute"
@@ -441,11 +441,6 @@ const InvestorDetails: React.FC = () => {
           </div>
         }
 
-
-        {/* <div className="file-input-wrapper">
-          <input type="file" id="fileInput" />
-          <div className="file-input-label">add image</div>
-        </div> */}
         <button
           className="btn btn-back mt-4 w-100"
           onClick={() => navigate(-1)}>

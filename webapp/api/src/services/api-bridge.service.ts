@@ -92,7 +92,7 @@ export const useApiBridge = {
   },
 
   async faucetBalance( accountAddressOwner: string): Promise<CreateBondResponse> {
-    return await post('/faucetBalance', { accountAddressOwner });
+    return await post('/tokenBalance', { accountAddressOwner });
   },
 
   async faucet( accountAddressOwner: string, amount: number): Promise<CreateBondResponse> {

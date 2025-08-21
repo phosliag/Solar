@@ -92,66 +92,51 @@ export const purchase = async (req: express.Request, res: express.Response) => {
 
 // TODO: Revisar si es necesario!!!!!!!!
 export const getTokenListAndUpcomingPaymentsByInvestor = async (req: express.Request, res: express.Response) => {
-  // try {
-  //   const { balance } = useBlockchainService();
-  //   const userId = req.params.userId;
-  //   const wallet = (await getInvestorById(userId)).walletAddress;
-  //   const paymentInvoices = await getPaymentInvoicesByUserId(userId);
-  //   const userResponse: UserInfo = { tokenList: [], upcomingPayment: [] };
+  try {
+    const userId = req.params.userId;
+    const invoices = await getPaymentInvoicesByUserId(userId);
 
-  //   const today = dayjs();
+    // Compose a response that includes all invoices with panel info and payment details
+    const panelInvoices = await Promise.all(
+      invoices.map(async (inv) => {
+        const panel = await getSolarPanelById(inv.panelId);
+        return {
+          invoiceId: String(inv._id),
+          panelId: inv.panelId,
+          panelName: panel?.name || inv.panelId,
+          payments: (inv.payments || []).map((p: any) => ({
+            timeStamp: p.timeStamp,
+            paid: p.paid,
+            trxPaid: p.trxPaid ?? null,
+            amount: p.amount ? parseFloat(String(p.amount)) : 0,
+          })),
+        };
+      })
+    );
 
-  //   // recorremos los paymentInvoices. 
-
-  //   for (const invoice of paymentInvoices) {
-  //     const bond = await getEntityById(invoice.bonoId);
-  //     const balanceResponse = await balance(bond.tokenState[0].contractAddress, wallet, bond.tokenState[0].network);
-
-  //     // tokenList: todos los registros sin importar 'paid'
-  //     userResponse.tokenList.push({
-  //       bondName: bond.itemName,
-  //       network: invoice.network,
-  //       amountAvaliable: invoice.amount,
-  //       price: (invoice.amount * Number(balanceResponse.message)) * bond.unitPrice,
-  //     });
-
-  //     // upcomingPayment: pagos no pagados y cuya fecha sea en el año actual
-  //     for (const payment of invoice.payments) {
-  //       const paymentDate = dayjs(payment.timeStamp);
-  //       if (
-  //         !payment.paid &&
-  //         paymentDate.year() === today.year()
-  //       ) {
-  //         const paymentAmount = invoice.amount * bond.unitPrice * (bond.rate / 100);
-  //         userResponse.upcomingPayment.push({
-  //           bondName: bond.itemName,
-  //           paymentDate: paymentDate.format("D/MM/YYYY"),
-  //           paymentAmount,
-  //         });
-  //       }
-  //     }
-  //   }
-  //   res.status(200).json(userResponse);
-  // } catch (error) {
-  //   res.status(500).json({ error: "Error al obtener los bonos del usuario" });
-  // }
+    // Maintain existing keys for compatibility
+    res.status(200).json({ tokenList: [], upcomingPayment: [], invoices: panelInvoices });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error retrieving investor invoices" });
+  }
 };
 
 export const balanceFaucet = async (req: express.Request, res: express.Response) => {
   try {
     const data = req.body;
-    console.log(data)
+
     const balance = await useApiBridge.faucetBalance(data.address);
-    console.log(balance)
+
     let big = BigInt(balance.message);
-    console.log(big)
     let amountFinal: number = Number(big);
 
     console.log(amountFinal);
 
     res.status(200).json(amountFinal / 1000000);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener los bonos del usuario" });
+    console.error("Error en faucetBalance:", error);
+      res.status(502).json({ error: "No se pudo obtener el balance desde el faucet" });
   }
 };
 

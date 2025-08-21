@@ -211,7 +211,9 @@ const PanelDetails: React.FC = () => {
                   name="price"
                   className="form-control bg-form"
                   placeholder="E.g., 1000€"
-                  value={formData.price}
+                  value={typeof formData.price === "object"
+                    ? formData.price?.$numberDecimal ?? ""
+                    : formData.price ?? ""}
                   onChange={handleChange}
                   readOnly={!!formData.owner}
                 />

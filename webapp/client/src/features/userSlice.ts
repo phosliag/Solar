@@ -29,6 +29,7 @@ const initialState: BondState = {
   pastDuePayments: [],
 };
 
+// Only used as login to update the 'userLogged' when Google login
 export const findInvestorByEmail = createAsyncThunk(
   "user/findInvestorByEmail",
   async (email: string, { rejectWithValue }) => {

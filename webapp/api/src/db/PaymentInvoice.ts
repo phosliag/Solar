@@ -34,7 +34,7 @@ export const getAllPaymentInvoices = () => PaymentInvoice.find();
 export const getPaymentInvoicesByUserId = (userId: string) => PaymentInvoice.find({ userId });
 
 // Get payment invoices by bonoId
-export const getPaymentInvoicesByBonoId = (bonoId: string) => PaymentInvoice.find({ bonoId });
+export const getPaymentInvoicesByPanelId = (panelId: string) => PaymentInvoice.find({ panelId });
 
 // Get a payment invoice by _id
 export const getPaymentInvoiceById = (id: string) => PaymentInvoice.findById(id);
@@ -52,17 +52,17 @@ export const deletePaymentInvoicesByBonoId = (bonoId: string) => PaymentInvoice.
 export const updatePaymentInvoiceById = (id: string, update: Partial<Record<string, any>>) => PaymentInvoice.findByIdAndUpdate(id, update, { new: true });
 
 // Update a payment invoice by userId + bonoId + network
-export const updatePaymentInvoiceByData = (userId: string, bondId: string, network: string, update: Partial<Record<string, any>>) =>
-  PaymentInvoice.findOneAndUpdate({ userId: userId, bonoId: bondId, network: network }, update, { new: true });
+export const updatePaymentInvoiceByData = (userId: string, panelId: string, update: Partial<Record<string, any>>) =>
+  PaymentInvoice.findOneAndUpdate({ userId: userId, panelId: panelId }, update, { new: true });
 
 // Get a payment invoice by userId + bonoId + network
-export const getPaymentInvoiceByData = (userId: string, bondId: string, network: string) =>
-  PaymentInvoice.findOne({ userId: userId, bonoId: bondId, network: network, });
+export const getPaymentInvoiceByData = (userId: string, panelId: string) =>
+  PaymentInvoice.findOne({ userId: userId, panelId: panelId });
 
 /* NEW FUNCTIONS TO HANDLE INDIVIDUAL PAYMENTS */
-
+// TODO -- Revisar necesidad de estas funciones
 // Add a new payment to an invoice (with only timeStamp, paid, trxPaid)
-export const addPaymentToInvoice = (invoiceId: string, payment: { timeStamp: Date; paid: boolean; trxPaid: string; }) =>
+export const addPaymentToInvoice = (invoiceId: string, payment: { timeStamp: Date; paid: boolean; trxPaid: string; amount?: number; }) =>
   PaymentInvoice.findByIdAndUpdate(
     invoiceId,
     { $push: { payments: payment } },
@@ -70,10 +70,10 @@ export const addPaymentToInvoice = (invoiceId: string, payment: { timeStamp: Dat
   );
 
 // Mark a payment as paid using its timestamp
-export const markPaymentAsPaid = (invoiceId: string, timeStamp: Date, update: { paid: boolean; trxPaid: string; }) =>
+export const markPaymentAsPaid = (invoiceId: string, timeStamp: Date, update: { paid: boolean; trxPaid: string; amount?: number; }) =>
   PaymentInvoice.findOneAndUpdate(
     { _id: invoiceId, "payments.timeStamp": timeStamp },
-    { $set: { "payments.$.paid": update.paid, "payments.$.trxPaid": update.trxPaid, }, }, { new: true }
+    { $set: { "payments.$.paid": update.paid, "payments.$.trxPaid": update.trxPaid, "payments.$.amount": update.amount } }, { new: true }
   );
 
 // Remove a specific payment by timestamp

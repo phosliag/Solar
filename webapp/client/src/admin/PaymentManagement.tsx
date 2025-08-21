@@ -3,7 +3,6 @@ import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { readPanels, updatePayment } from "../features/solarPanelSlice";
 import { SolarPanel } from "../SolarPanel";
 import { useNavigate } from "react-router-dom";
-import { getPayments } from "../features/userSlice";
 import Papa from "papaparse";
 
 interface ProductionRecord {
@@ -11,9 +10,12 @@ interface ProductionRecord {
   Produccion_Monocristalina_kWh: number;
   Precio_Luz_Euro_kWh: number;
 }
-interface MonthlyProduction {
-  inversor: string;  // panel name or investor id si quieres
-  fecha: string;     // último día mes YYYY-MM-DD
+interface MonthlyPanelPayment {
+  panelId: string;
+  panelName: string;
+  owner: string;
+  fecha: string; // último día del mes actual YYYY-MM-DD
+  kwh: number;
   totalEnEuro: number;
 }
 
@@ -22,26 +24,16 @@ const PaymentManagement = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const panels: SolarPanel[] = useAppSelector((state) => state.solarPanel.panels) || [];
-  const user = useAppSelector((state) => state.user.userLoged);
-  const upcomingPayments = useAppSelector((state) => state.user.upcomingPayments);
-  const pastDuePayments = useAppSelector((state) => state.user.pastDuePayments);
-
-  const [selectedPanel, setSelectedPanel] = useState<SolarPanel | null>(null);
-
-  // CAMBIO: payBatch ahora es estado React para que checkbox funcione
-  const [payBatch, setPayBatch] = useState<string[]>([]);
-
-  const [productionSummary, setProductionSummary] = useState<MonthlyProduction[]>([]);
+  
+  const [rows, setRows] = useState<MonthlyPanelPayment[]>([]);
   const [loadingProduction, setLoadingProduction] = useState(false);
   const [errorProduction, setErrorProduction] = useState<string | null>(null);
+  const [selectedPanelIds, setSelectedPanelIds] = useState<string[]>([]);
 
-  const handlePanel = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedPanel(panels.find((panel) => panel.name === e.target.value) || null);
-    setPayBatch([]); // resetear selección al cambiar panel
-  };
-
+  // Devuelve la ruta del CSV mock correspondiente al año indicado
   const getCsvUrlForYear = (year: string) => `/mockPlacas/produccion_placas_luz_${year}.csv`;
 
+  // Descarga y parsea un CSV a un array de ProductionRecord usando Papa.parse
   const fetchAndParseCsv = (url: string): Promise<ProductionRecord[]> => {
     return new Promise((resolve, reject) => {
       Papa.parse(url, {
@@ -65,115 +57,182 @@ const PaymentManagement = () => {
     });
   };
 
-  const calcularProduccionMensual = (records: ProductionRecord[], panelName: string): MonthlyProduction[] => {
-    const grouped: Record<string, { produccionSum: number; costeSum: number }> = {};
+  // Calcula la producción (kWh) y el importe (€) del mes objetivo (0-11), ignorando el año del CSV
+  const computeMonthTotals = (records: ProductionRecord[], targetMonthIndex: number): { kwh: number; euro: number } => {
+    let monthKwh = 0;
+    let monthEuro = 0;
     records.forEach(({ Fecha, Produccion_Monocristalina_kWh, Precio_Luz_Euro_kWh }) => {
-      const date = new Date(Fecha);
-      const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
-      if (!grouped[monthKey]) grouped[monthKey] = { produccionSum: 0, costeSum: 0 };
-      grouped[monthKey].produccionSum += Produccion_Monocristalina_kWh;
-      grouped[monthKey].costeSum += Precio_Luz_Euro_kWh * Produccion_Monocristalina_kWh;
+      const d = new Date(Fecha);
+      // Usar el mes objetivo, ignorando el año del CSV
+      if (d.getMonth() === targetMonthIndex) {
+        const kwh = Number(Produccion_Monocristalina_kWh) || 0;
+        const price = Number(Precio_Luz_Euro_kWh) || 0;
+        monthKwh += kwh;
+        monthEuro += kwh * price;
+      }
     });
-    return Object.entries(grouped).map(([month, { produccionSum, costeSum }]) => {
-      const [year, monthStr] = month.split("-");
-      const y = parseInt(year);
-      const m = parseInt(monthStr);
-      const lastDay = new Date(y, m, 0).getDate();
-      const costeMedio = costeSum / produccionSum || 0;
-      const totalEnEuro = produccionSum * costeMedio;
-      return {
-        inversor: panelName,
-        fecha: `${year}-${monthStr}-${lastDay.toString().padStart(2, "0")}`,
-        totalEnEuro: parseFloat(totalEnEuro.toFixed(2)),
-      };
-    });
+    return { kwh: parseFloat(monthKwh.toFixed(2)), euro: parseFloat(monthEuro.toFixed(2)) };
   };
 
+  // Carga inicial: establece el título y solicita las placas disponibles
   useEffect(() => {
     document.title = "Payment Management";
     dispatch(readPanels());
-    dispatch(getPayments(user?._id!));
-  }, [dispatch, user?._id]);
+  }, [dispatch]);
 
+  // Construye las filas mensuales por placa con owner:
+  //  - Agrupa placas por año de instalación
+  //  - Carga en paralelo los CSV necesarios
+  //  - Calcula kWh y € del mes objetivo (mes anterior al actual)
+  //  - Fija la fecha al último día del periodo mostrado
   useEffect(() => {
-    if (!selectedPanel || !selectedPanel.owner) {
-      setProductionSummary([]);
-      return;
-    }
-    const year = selectedPanel.installationYear ?? selectedPanel.name.slice(0, 4);
-    setLoadingProduction(true);
-    setErrorProduction(null);
-    fetchAndParseCsv(getCsvUrlForYear(year.toString()))
-      .then((data) => {
-        const resumen = calcularProduccionMensual(data, selectedPanel.owner!);
-        setProductionSummary(resumen);
-      })
-      .catch((error) => {
+    const run = async () => {
+      const panelsWithOwner = (panels || []).filter((p) => Boolean(p.owner));
+      if (panelsWithOwner.length === 0) {
+        setRows([]);
+        return;
+      }
+      setLoadingProduction(true);
+      setErrorProduction(null);
+      try {
+        // Dedupe años por panel
+        const yearToPanels: Record<string, SolarPanel[]> = {};
+        for (const p of panelsWithOwner) {
+          const inferredYear = (p.installationYear ?? Number(String(p.name).slice(0, 4))) || new Date().getFullYear();
+          const yearStr = String(inferredYear);
+          if (!yearToPanels[yearStr]) yearToPanels[yearStr] = [];
+          yearToPanels[yearStr].push(p);
+        }
+
+        // Cargar CSV por año en paralelo
+        const yearEntries = Object.entries(yearToPanels);
+        const fetched = await Promise.all(
+          yearEntries.map(async ([yearStr]) => {
+            const records = await fetchAndParseCsv(getCsvUrlForYear(yearStr));
+            return [yearStr, records] as [string, ProductionRecord[]];
+          })
+        );
+        const recordsByYear = Object.fromEntries(fetched) as Record<string, ProductionRecord[]>;
+
+        // Construir filas por panel con sus datos de año correspondiente
+        const now = new Date();
+        // Periodo objetivo: mes anterior al actual
+        let targetYear = now.getFullYear();
+        let targetMonth = now.getMonth() - 1; // mes anterior
+        if (targetMonth < 0) {
+          targetMonth = 11;
+          targetYear -= 1;
+        }
+        const lastDay = new Date(targetYear, targetMonth + 1, 0).getDate();
+        const fechaStr = `${targetYear}-${(targetMonth + 1)
+          .toString()
+          .padStart(2, "0")}-${lastDay.toString().padStart(2, "0")}`;
+
+        const builtRows: MonthlyPanelPayment[] = panelsWithOwner.map((p) => {
+          const inferredYear = (p.installationYear ?? Number(String(p.name).slice(0, 4))) || now.getFullYear();
+          const yearStr = String(inferredYear);
+          const records = recordsByYear[yearStr] || [];
+          const totals = computeMonthTotals(records, targetMonth);
+          return {
+            panelId: p._id || "",
+            panelName: p.name,
+            owner: p.owner,
+            fecha: fechaStr,
+            kwh: totals.kwh,
+            totalEnEuro: totals.euro,
+          };
+        });
+
+        setRows(builtRows);
+      } catch (error) {
         console.error("Error cargando/parsing CSV:", error);
         setErrorProduction(`Error cargando o procesando datos: ${JSON.stringify(error)}`);
-        setProductionSummary([]);
-      })
-      .finally(() => setLoadingProduction(false));
-  }, [selectedPanel]);
+        setRows([]);
+      } finally {
+        setLoadingProduction(false);
+      }
+    };
+    run();
+  }, [panels]);
 
-  // CAMBIO: actualizar opción checkbox con estado React
-  function handleAddToPay(value: string) {
-    setPayBatch((prev) =>
-      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
-    );
-  }
+  // Permite pagar el periodo mostrado (mes anterior) cuando ya ha finalizado, incluyendo el mes siguiente
+  // Indica si una fila (periodo) ya es pagable: hoy es posterior al final del periodo
+  const isRowPayable = (row: MonthlyPanelPayment) => {
+    const now = new Date();
+    const rowDate = new Date(row.fecha + "T23:59:59Z");
+    return now >= rowDate;
+  };
 
-  async function handlePay(payments: { userId: string; panelId: string; network: string }[]) {
+  // Lanza el pago de una sola fila (un panel) con amount y timeStamp del periodo
+  async function handlePaySingle(row: MonthlyPanelPayment) {
     try {
       setIsLoading(true);
-      for (const payment of payments) {
-        console.log("Actualizando pago para", payment.userId, payment.panelId);
-        await dispatch(updatePayment(payment));
-      }
-      await dispatch(getPayments(user?._id!));
-      setPayBatch([]);
+      await dispatch(
+        updatePayment({
+          userId: row.owner,
+          panelId: row.panelId,
+          amount: row.totalEnEuro,
+          timeStamp: row.fecha + "T12:00:00.000Z"
+        })
+      );
     } catch (e) {
-      console.error("Error procesando pagos:", e);
+      console.error("Error procesando pago:", e);
     } finally {
       setIsLoading(false);
     }
   }
 
-  const totalSelectedAmount = productionSummary
-  .filter(({ inversor, fecha }) => payBatch.includes(`${inversor}-${fecha}`))
-  .reduce((acc, item) => acc + item.totalEnEuro, 0);
+  // Añade o quita un panel de la selección para pago en lote
+  function toggleSelect(panelId: string) {
+    setSelectedPanelIds((prev) =>
+      prev.includes(panelId) ? prev.filter((id) => id !== panelId) : [...prev, panelId]
+    );
+  }
+
+  // Selecciona o deselecciona todos los paneles de la tabla
+  function toggleSelectAll(checked: boolean) {
+    if (checked) setSelectedPanelIds(rows.map((r) => r.panelId));
+    else setSelectedPanelIds([]);
+  }
+
+  // Suma el importe total de las filas seleccionadas
+  const totalSelectedAmount = rows
+    .filter((r) => selectedPanelIds.includes(r.panelId))
+    .reduce((sum, r) => sum + r.totalEnEuro, 0);
+
+  // Procesa los pagos en lote para las filas seleccionadas
+  async function handlePayBatch() {
+    try {
+      setIsLoading(true);
+      for (const row of rows) {
+        if (!selectedPanelIds.includes(row.panelId)) continue;
+        await dispatch(
+          updatePayment({
+            userId: row.owner,
+            panelId: row.panelId,
+            amount: row.totalEnEuro,
+            timeStamp: row.fecha + "T12:00:00.000Z",
+          })
+        );
+      }
+      setSelectedPanelIds([]);
+    } catch (e) {
+      console.error("Error procesando pagos en batch:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
 
   return (
     <div className="solar-panel-section mt-4" style={{ position: "relative" }}>
-      <div className="position-absolute top-0 end-0 m-3" style={{ display: "flex", justifyContent: "end" }}>
-        <button className="btn btn-back" onClick={() => navigate("/admin-dash")} style={{ width: 90 }}>
-          Cancel
+      <div className="m-3" style={{ display: "flex", justifyContent: "end" }}>
+        <button className="btn btn-back" onClick={() => navigate("/admin-dash")} >
+          Back
         </button>
       </div>
 
       <h2 className="mb-3">PAYMENT MANAGEMENT</h2>
-
-      // TODO - Quitar la seleccion
-      <h2 className="section-title mt-4" style={{ alignSelf: "start" }}>
-        Token Selection:
-      </h2>
-      <div className="wallet-box">
-        <select
-          id="panel"
-          name="panel"
-          className="form-control bg-form"
-          value={selectedPanel?.name || ""}
-          onChange={handlePanel}
-        >
-          <option value="">Select panel</option>
-          {panels.map((panel) => (
-            <option value={panel.name} key={panel._id}>
-              {panel.name}
-            </option>
-          ))}
-        </select>
-      </div>
 
       <h4 className="pending-payments mt-4" style={{ textAlign: "left" }}>
         Pending Payments:
@@ -184,28 +243,12 @@ const PaymentManagement = () => {
         <button
           className="btn-pay-now"
           style={{ marginLeft: 30 }}
-          disabled={isLoading}
-          onClick={() => {
-            const payment = upcomingPayments.find((p) => p.bondName === selectedPanel?.name);
-            console.log("Procesando pagos seleccionados");
-            if (payment) {
-              const paymentsToProcess = payment.investors
-                .filter((investor: { userId: string }) => payBatch.includes(investor.userId))
-                .map((investor: { userId: string }) => ({
-                  userId: investor.userId,
-                  panelId: selectedPanel?._id!,
-                  network: payment.network,
-                }));
-              console.log("Pagos a procesar:", paymentsToProcess);
-              if (paymentsToProcess.length > 0) {
-                handlePay(paymentsToProcess);
-              } else {
-                console.log("No hay pagos seleccionados para procesar");
-              }
-            } else {
-              console.log("No se encontró el pago para el bono seleccionado");
-            }
-          }}
+          disabled={
+            isLoading ||
+            selectedPanelIds.length === 0 ||
+            !rows.every((r) => !selectedPanelIds.includes(r.panelId) || isRowPayable(r))
+          }
+          onClick={handlePayBatch}
         >
           {isLoading ? (
             <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -217,91 +260,65 @@ const PaymentManagement = () => {
 
       {loadingProduction && <p>Cargando producción...</p>}
       {errorProduction && <p style={{ color: "red" }}>{errorProduction}</p>}
-      {!loadingProduction && !errorProduction && productionSummary.length === 0 && (
+      {!loadingProduction && !errorProduction && rows.length === 0 && (
         <p>No hay datos para mostrar</p>
       )}
 
-      {productionSummary.length > 0 && (
+      {rows.length > 0 && (
         <table className="table-hl">
           <thead style={{ backgroundColor: "#7ba6e9", color: "white" }}>
             <tr>
               <th>
                 <input
                   type="checkbox"
-                  disabled
-                  aria-label="Select all (Not implemented)"
+                  aria-label="Select all"
+                  checked={selectedPanelIds.length > 0 && selectedPanelIds.length === rows.length}
+                  onChange={(e) => toggleSelectAll(e.target.checked)}
                 />
               </th>
+              <th>Panel</th>
+              <th>Owner</th>
               <th>Date</th>
+              <th>kWh (mes)</th>
               <th>Total earned (€)</th>
-              <th></th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {productionSummary.map(({ inversor, fecha, totalEnEuro }) => {
-              const rowId = `${inversor}-${fecha}`;
-              return (
-                <tr key={rowId}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={payBatch.includes(rowId)}
-                      onChange={() => handleAddToPay(rowId)}
-                      style={{ textAlign: "center", marginRight: 10 }}
-                    />
-                    {inversor}
-                  </td>
-                  <td>{fecha}</td>
-                  <td>{totalEnEuro}</td>
-                  <td>
-                    <button
-                      className="btn-pay-now"
-                      disabled={isLoading}
-                      onClick={() =>
-                        handlePay([
-                          {
-                            userId: rowId,
-                            panelId: selectedPanel?._id || "",
-                            network: "mock-network",
-                          },
-                        ])
-                      }
-                    >
-                      {isLoading ? (
-                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                      ) : (
-                        "Pay"
-                      )}
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+            {rows.map((row) => (
+              <tr key={row.panelId}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedPanelIds.includes(row.panelId)}
+                    onChange={() => toggleSelect(row.panelId)}
+                  />
+                </td>
+                <td>{row.panelName}</td>
+                <td>{row.owner}</td>
+                <td>{row.fecha}</td>
+                <td>{row.kwh}</td>
+                <td>{row.totalEnEuro}</td>
+                <td>
+                  <button
+                    className="btn-pay-now"
+                    disabled={isLoading || !isRowPayable(row)}
+                    onClick={() => handlePaySingle(row)}
+                  >
+                    {isLoading ? (
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    ) : (
+                      "Pay"
+                    )}
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       )}
 
-      <h2 className="section-title mt-4">Next Payments:</h2>
-      <table className="table-hl">
-        <thead style={{ backgroundColor: "#7ba6e9", color: "white" }}>
-          <tr>
-            <th>Investor</th>
-            <th>Date</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pastDuePayments
-            .find((payment) => payment.bondName === selectedPanel?.name)
-            ?.map((payment: any) => (
-              <tr key={payment.paymentDate}>
-                <td>{payment.investors.userId}</td>
-                <td>{payment.paymentDate}</td>
-                <td>{payment.amount}</td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+      {false}
 
       <button className="btn-back mt-4" onClick={() => navigate(-1)}>
         BACK

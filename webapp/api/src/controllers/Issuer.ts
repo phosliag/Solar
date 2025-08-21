@@ -3,7 +3,7 @@ import { createIssuer, getIssuerByEmail, getIssuers, updateIssuerById, deleteIss
 import { MongoServerError } from 'mongodb';
 import { useBlockchainService } from '../services/blockchain.service'
 import { UserInfo } from "../models/Payment";
-import { getPaymentInvoicesByBonoId, updatePaymentInvoiceByData, getPaymentInvoiceByData, getPaymentInvoicesByUserId } from "../db/PaymentInvoice";
+import { getPaymentInvoicesByPanelId, updatePaymentInvoiceByData, getPaymentInvoiceByData, getPaymentInvoicesByUserId } from "../db/PaymentInvoice";
 import { Payment, Investors } from "../models/Payment";
 import { getIssuerById } from '../db/Issuer';
 import dayjs from "dayjs";
@@ -144,10 +144,10 @@ export const getPendingPayments = async (req: express.Request, res: express.Resp
 
 export const updatePayment = async (req: express.Request, res: express.Response) => {
   console.log("📩 Recibido en req.body:", req.body);
-  const { userId, bondId: panelId, network } = req.body;
+  const { userId, panelId, amount, timeStamp } = req.body;
   const paid = true;
 
-  const invoice = await getPaymentInvoiceByData(userId, panelId, network);
+  // const invoice = await getPaymentInvoiceByData(userId, panelId);
   const panel = await getSolarPanelById(panelId);
 
   const inversor = await getInvestorById(userId);
@@ -168,7 +168,20 @@ export const updatePayment = async (req: express.Request, res: express.Response)
     return;
   }
 
-  const payment = await updatePaymentInvoiceByData(userId, panelId, network, { payment: { paid: true, trxPaid: responseTransfer.message } });
+  // TODO -- Revisar el update y creacion del nuevo invoice para mes que viene
+  // NO OLVIDAR CAMBIAR FETCH FRONT (si es necesario)
+  const payment = await updatePaymentInvoiceByData(
+    userId,
+    panelId,
+    {
+      payment: {
+        paid: true,
+        trxPaid: responseTransfer.message,
+        amount: amount,
+        timeStamp: timeStamp || new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 12)
+      }
+    }
+  );
 
   res.status(200).json(payment);
 }

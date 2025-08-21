@@ -97,11 +97,8 @@ const EnterpriseWallet = () => {
     <>
       <div className="solar-panel-section mt-4">
         <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-start" }}>
-          <button
-            type="button"
-            className="btn btn-back mr-3"
-            onClick={() => navigate("/admin-dash")}
-            style={{ width: '90px', whiteSpace: 'nowrap' }}>
+          <button className="btn btn-back mr-3"
+            onClick={() => navigate("/admin-dash")}>
             Back
           </button>
         </div>
