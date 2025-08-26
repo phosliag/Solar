@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { readPanels, updatePayment } from "../features/solarPanelSlice";
+import { readPanels, updatePayment, getPendingPayments } from "../features/solarPanelSlice";
 import { SolarPanel } from "../SolarPanel";
 import { useNavigate } from "react-router-dom";
 import Papa from "papaparse";
@@ -24,6 +24,7 @@ const PaymentManagement = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const panels: SolarPanel[] = useAppSelector((state) => state.solarPanel.panels) || [];
+  const invoices: any[] = useAppSelector((state) => state.solarPanel.invoices) || [];
   
   const [rows, setRows] = useState<MonthlyPanelPayment[]>([]);
   const [loadingProduction, setLoadingProduction] = useState(false);
@@ -78,6 +79,7 @@ const PaymentManagement = () => {
   useEffect(() => {
     document.title = "Payment Management";
     dispatch(readPanels());
+    dispatch(getPendingPayments());
   }, [dispatch]);
 
   // Construye las filas mensuales por placa con owner:
@@ -128,6 +130,19 @@ const PaymentManagement = () => {
           .toString()
           .padStart(2, "0")}-${lastDay.toString().padStart(2, "0")}`;
 
+        // Mapear fecha desde invoices (primer payment pendiente por panel)
+        const panelNextPaymentDate: Record<string, string> = {};
+        for (const inv of invoices) {
+          const unpaid = (inv.payments || []).find((p: any) => !p.paid);
+          if (unpaid) {
+            const d = new Date(unpaid.timeStamp);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            panelNextPaymentDate[inv.panelId] = `${y}-${m}-${day}`;
+          }
+        }
+
         const builtRows: MonthlyPanelPayment[] = panelsWithOwner.map((p) => {
           const inferredYear = (p.installationYear ?? Number(String(p.name).slice(0, 4))) || now.getFullYear();
           const yearStr = String(inferredYear);
@@ -137,7 +152,8 @@ const PaymentManagement = () => {
             panelId: p._id || "",
             panelName: p.name,
             owner: p.owner,
-            fecha: fechaStr,
+            // Fecha viene del invoice si existe payment pendiente; si no, usar periodo objetivo por defecto
+            fecha: panelNextPaymentDate[p._id || ""] || fechaStr,
             kwh: totals.kwh,
             totalEnEuro: totals.euro,
           };
@@ -153,7 +169,7 @@ const PaymentManagement = () => {
       }
     };
     run();
-  }, [panels]);
+  }, [panels, invoices]);
 
   // Permite pagar el periodo mostrado (mes anterior) cuando ya ha finalizado, incluyendo el mes siguiente
   // Indica si una fila (periodo) ya es pagable: hoy es posterior al final del periodo

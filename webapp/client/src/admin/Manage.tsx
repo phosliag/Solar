@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { readPanels } from "../features/solarPanelSlice";
 import { useNavigate } from "react-router-dom";
@@ -8,18 +8,34 @@ const Manage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const panels = useAppSelector((state) => state.solarPanel.panels);
-  const userLoged = useAppSelector((state) => state.user.userLoged);
-  const userId = userLoged?._id;
+  
+  const [page, setPage] = useState<number>(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     document.title = "Manage panels";
     dispatch(readPanels());
   }, [dispatch]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [panels]);
+
+  const totalItems = panels?.length ?? 0;
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(totalItems / PAGE_SIZE)), [totalItems]);
+
+  const currentPage = useMemo(() => Math.min(page, totalPages), [page, totalPages]);
+
+  const paginatedPanels = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    return (panels ?? []).slice(start, end);
+  }, [panels, currentPage]);
+
   return (
     <div
-      className="container-fluid d-flex justify-content-center align-items-center"
-      style={{ height: "100vh"}}>
+      className="container-fluid d-flex justify-content-center"
+      style={{ alignSelf: "flex-start", width: "100%", paddingTop: "2rem" }}>
       <div className="solar-panel-section mt-3" style={{ maxWidth: '1350px', width: '80vw' }}>
         <h1 className="text-center mb-5 fw-bold">MANAGE MY PANELS</h1>
 
@@ -40,7 +56,7 @@ const Manage = () => {
             </tr>
           </thead>
           <tbody>
-            {panels?.map((panel: SolarPanel, index: number) => (
+            {paginatedPanels.map((panel: SolarPanel, index: number) => (
               <tr key={index}>
                 <td className="p-3 fst-italic" onClick={() => navigate(`/panel-details`,  { state: { panelData: panel} })}>{panel.name}</td>
                 <td className="p-3">{panel.state}</td>
@@ -49,6 +65,30 @@ const Manage = () => {
             ))}
           </tbody>
         </table>
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <div>
+            {`Showing ${totalItems === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} - ${Math.min(currentPage * PAGE_SIZE, totalItems)} of ${totalItems}`}
+          </div>
+          <nav aria-label="Page navigation">
+            <ul className="pagination pagination-themed justify-content-center mb-0">
+              <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                <button className="page-link" onClick={() => setPage((p) => Math.max(1, p - 1))} aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </button>
+              </li>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <li key={p} className={`page-item ${p === currentPage ? "active" : ""}`}>
+                  <button className="page-link" onClick={() => setPage(p)}>{p}</button>
+                </li>
+              ))}
+              <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                <button className="page-link" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
         <div className="container-md row m-3" style={{ display: "flex", justifyContent: "end", gap: "20px" }}>
           <button
             type="button"

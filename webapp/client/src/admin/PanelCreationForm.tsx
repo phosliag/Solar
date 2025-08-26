@@ -24,7 +24,7 @@ const PanelCreationForm = () => {
     state: "",
     owner: "",
     stimatedProduction: undefined,
-    paymentFreq: "Annualy",
+    paymentFreq: "Mounthly",
     installationYear: undefined, // Añadido campo año de instalación
   });
 
@@ -232,7 +232,7 @@ const PanelCreationForm = () => {
                   name="price"
                   className="form-control bg-form"
                   placeholder="E.g., 1000€"
-                  value={formData.price}
+                  value={typeof formData.price === "object" ? (formData.price?.$numberDecimal ?? "") : (formData.price ?? "")}
                   onChange={handleChange}
                 />
               </div>
@@ -247,7 +247,7 @@ const PanelCreationForm = () => {
                   value={formData.paymentFreq}
                   onChange={handleChange}
                   disabled>
-                  <option value="Annualy" disabled>Annually</option>
+                  <option value="Mounthly" disabled>Mounthly</option>
                 </select>
               </div>
             </div>
@@ -324,7 +324,7 @@ const PanelCreationForm = () => {
               <h5 className="fw-bold fst-italic mt-4 text-left" style={{ textAlign: 'left' }}>Financial Terms:</h5>
               <ul>
                 <li>
-                  <strong>Price:</strong> <em>{formData.price}</em>
+                  <strong>Price:</strong> <em>{typeof formData.price === "object" ? (formData.price?.$numberDecimal ?? "") : (formData.price ?? "")}</em>
                 </li>
                 <li>
                   <strong>Coupon Payment Frequency:</strong> <em>{formData.paymentFreq}</em>

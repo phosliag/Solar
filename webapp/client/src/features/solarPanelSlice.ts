@@ -280,6 +280,28 @@ export const updatePayment = createAsyncThunk(
   }
 );
 
+// --- GET ALL INVOICES/PENDING PAYMENTS ---
+export const getPendingPayments = createAsyncThunk(
+  "solarPanel/getPendingPayments",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/panels-pending-payments`, { method: "GET" });
+      if (!response.ok) {
+        try {
+          const error = await response.json();
+          return rejectWithValue(error.message || "Error desconocido");
+        } catch {
+          return rejectWithValue(`Unexpected response: ${response.statusText}`);
+        }
+      }
+      const data = await response.json();
+      return data.invoices || [];
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const solarPanelSlice = createSlice({
   name: "solarPanel",
   initialState,
@@ -392,6 +414,18 @@ const solarPanelSlice = createSlice({
         state.invoices = action.payload.invoices;
       })
       .addCase(getTokenListAndUpcomingPaymentsByInvestor.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload as string;
+      })
+      .addCase(getPendingPayments.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(getPendingPayments.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.invoices = action.payload as any[];
+      })
+      .addCase(getPendingPayments.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload as string;
       })

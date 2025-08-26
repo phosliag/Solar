@@ -70,8 +70,8 @@ const TransactionTable = () => {
                       <Dropdown.Menu style={{ maxHeight: '200px', overflowY: 'scroll', zIndex: 9999 }}>
                         <Dropdown.Item onClick={() => setTrxTypeFilter("")} active={trxTypeFilter === ""}>All Types</Dropdown.Item>
                         {[
-                          "purchaseBond", "redeemBond", "callContractMethodController",
-                          "executeContractMethodController", "mintBond", "createBond",
+                          "purchase", "redeem", "callContractMethodController",
+                          "executeContractMethodController", "create",
                           "requestTransfer", "balance", "getFaucetBalance",
                           "faucet", "requestStable", "createAccount"
                         ].map(type => (

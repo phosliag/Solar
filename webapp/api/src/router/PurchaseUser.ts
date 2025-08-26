@@ -1,7 +1,6 @@
 import express from "express";
 import { getPurchaseUsers } from "../db/PurchaseUser";
-import { purchase, getAllPurchaseUsers, getTokenListAndUpcomingPaymentsByInvestor, balanceFaucet, faucetStable } from "../controllers/PurchaseUser";
-import { updatePayment } from "../controllers/Issuer";
+import { purchase, getAllPurchaseUsers, getTokenListAndUpcomingPaymentsByInvestor, balanceFaucet, faucetStable, updatePayment } from "../controllers/PurchaseUser";
 import { getAllInvestors, registerInvestor, updateInvestor, getInvestorByEmailController } from "../controllers/Investor";
 import { login } from "../controllers/auth";
 

@@ -39,6 +39,12 @@
   background: linear-gradient(90deg, var(--color-green-main) 0%, var(--color-border) 100%);
 }
 
+.btn-pay-now:disabled {
+  background: #ccc; /* color apagado */
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Botón de acción secundaria ("Back") con color secundario */
 .btn-back {
   background: linear-gradient(90deg, var(--color-green-secondary) 0%, var(--color-border) 100%);
@@ -70,8 +76,7 @@
 }
 
 .solar-panel-section {
-  width: 100%;
-  max-width: 900px;
+  width: 900px;
   margin: 1.5rem auto;
   padding: 0.5em 0 1.5em 0;
   border-bottom: 2px solid var(--color-green-accent);

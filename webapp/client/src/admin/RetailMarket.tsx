@@ -26,6 +26,7 @@ const RetailMarket = () => {
     location: "",
     owner: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleData = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -71,8 +72,16 @@ const RetailMarket = () => {
 
   const handleConfirmSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const market = await dispatch(addRetailMarketPanel({ reference: marketData.reference, location: marketData.location, owner: "" })).unwrap();
-    setCreated(market);
+    if (isSubmitting) return;
+    try {
+      setIsSubmitting(true);
+      const market = await dispatch(
+        addRetailMarketPanel({ reference: marketData.reference, location: marketData.location, owner: "" })
+      ).unwrap();
+      setCreated(market);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selectedPanel = registeredPanels?.find(panel => panel.reference === marketData.reference);
@@ -162,8 +171,11 @@ const RetailMarket = () => {
               </ul>
 
               <div className="popup-actions mt-5" style={{ textAlign: "center" }}>
-                <button className="btn btn-pay-now" onClick={handleConfirmSubmit}>
-                  CONFIRM
+                <button className="btn btn-pay-now" onClick={handleConfirmSubmit} disabled={isSubmitting}>
+                  {isSubmitting && (
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  )}
+                  {isSubmitting ? "Processing..." : "CONFIRM"}
                 </button>
                 <button className="btn btn-back" onClick={() => setShowPopup(false)}>
                   Edit

@@ -3,7 +3,7 @@ import { getRetailMarkets, getRetailMarketById, createRetailMarket, updateRetail
 import { MongoServerError } from 'mongodb';
 import { getSolarPanelsByReference, SolarPanel, updateSolarPanelById } from '../db/SolarPanel';
 import { handleTransactionError, handleTransactionSuccess } from '../services/trx.service';
-import { CREATE_BOND } from '../utils/Constants';
+import { CREATE } from '../utils/Constants';
 import { useBlockchainService } from '../services/blockchain.service';
 
 // Obtener todos los paneles solares del mercado
@@ -74,13 +74,13 @@ export const addRetailMarketItem = async (req: express.Request, res: express.Res
 
         await handleTransactionSuccess(
           panel._id.toString(),
-          CREATE_BOND,
-          blockchainCreation.nft[0].transactionHash
+          CREATE,
+          blockchainCreation.nft[0]
         );
       } catch (error) {
         await handleTransactionError(
           panel._id.toString(),
-          CREATE_BOND,
+          CREATE,
           error
         );
       }

@@ -3,7 +3,7 @@ import { encodeBytes32String, ethers } from 'ethers';
 import { createAccount, createAccountSimple } from './api-smart-account.service'; // Simulando tu servicio ApiSmartAccount
 import { useApiBridge } from './api-bridge.service'; // Simulando tu servicio ApiBridge
 import { SmartAccount } from '../models/company.model';
-import { CREATE_ACCOUNT_MULTIPLE, CREATE_INDIVIDUAL_ACCOUNT_RETRY } from '../utils/Constants';
+import { CREATE_ACCOUNT } from '../utils/Constants';
 import { handleTransactionError, handleTransactionSuccess } from './trx.service';
 export const useBlockchainService = () => {
   // const [provider, setProvider] = useState(null);
@@ -31,7 +31,7 @@ export const useBlockchainService = () => {
           await createAccountSimple(acc.address, acc.network);
           await handleTransactionSuccess(
             companyName,
-            CREATE_INDIVIDUAL_ACCOUNT_RETRY,
+            CREATE_ACCOUNT,
             acc
           );
           console.log(`Cuenta ${acc.address} reintentada con éxito.`);
@@ -39,7 +39,7 @@ export const useBlockchainService = () => {
           console.error(`Error al reintentar cuenta ${acc.address}:`, retryErr);
           await handleTransactionError(
             companyName,
-            CREATE_INDIVIDUAL_ACCOUNT_RETRY,
+            CREATE_ACCOUNT,
             retryErr
           );
         }

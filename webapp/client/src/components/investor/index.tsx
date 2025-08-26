@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { useEffect, useMemo } from "react";
 import { getRetailMarketPanels } from "../../features/solarPanelSlice";
-import PanelCard from "./PanelCard";
+import AvailablePanels from "./AvailablePanels";
 import { Dropdown } from "react-bootstrap";
 
 const Oportunities = () => {
@@ -96,19 +96,7 @@ const Oportunities = () => {
               </div>
             )}
             <h1 className="m-5 align-self-start" style={{ color: "var(--color-green-main)" }}>Available Panels :</h1>
-            <div className="row">
-              {panels && panels.filter(panel => !panel.owner).length > 0 ? (
-                panels.filter(panel => !panel.owner).map((panel) => (
-                  <div key={panel._id} className="col-md-6">
-                    <PanelCard solarPanel={panel} user={user!} canBuy={user?.authImages?.validated} />
-                  </div>
-                ))
-              ) : (
-                <div className="col-md-12 text-center">
-                  <p>No available panels for investment.</p>
-                </div>
-              )}
-            </div>
+            <AvailablePanels panels={panels ?? undefined} user={user} />
           </div>
         </div>
       </div>

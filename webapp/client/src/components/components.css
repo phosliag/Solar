@@ -38,20 +38,20 @@ li {
   align-items: start;
   margin: 1rem auto;
   padding: 1.5rem;
-  background: var(--color-bg);
-  border-radius: 16px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 10px;
   box-shadow: 0 4px 16px 0 var(--color-border);
   border: 1px solid var(--color-green-soft);
 }
-.bond-card {
+.panel-card {
   align-items: start;
   margin: 1rem auto;
   padding: 1.5rem;
   box-shadow: 0 4px 8px rgba(168, 230, 207, 0.2);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--color-green-secondary);
 }
-.bond-card .card-body ul {
+.panel-card .card-body ul {
   padding-left: 0 !important;
   margin-left: 0 !important;
   list-style-position: inside;
@@ -185,4 +185,38 @@ h1, h2, h3, h4, h5, h6 {
 .section-title {
   color: var(--color-green-main) !important;
   font-weight: bold;
+}
+
+/* Themed select and pagination to match project palette */
+.select-themed,
+.select-themed.form-select {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-green-main);
+  box-shadow: 0 2px 8px rgba(168, 230, 207, 0.15);
+}
+.select-themed:focus {
+  border-color: var(--color-green-accent);
+  box-shadow: 0 0 0 0.25rem rgba(168, 230, 207, 0.25);
+}
+
+.pagination-themed .page-link {
+  color: var(--color-green-main);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-green-main);
+}
+.pagination-themed .page-item.active .page-link {
+  color: #fff;
+  background-color: var(--color-green-accent);
+  border-color: var(--color-green-accent);
+}
+.pagination-themed .page-item.disabled .page-link {
+  color: var(--color-border);
+  background-color: var(--color-bg);
+  border-color: var(--color-border);
+}
+.pagination-themed .page-link:hover {
+  color: #fff !important;
+  background-color: var(--color-green-accent) !important;
+  border-color: var(--color-green-accent) !important;
 }

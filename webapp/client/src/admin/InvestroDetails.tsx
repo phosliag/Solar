@@ -139,7 +139,7 @@ const InvestorDetails: React.FC = () => {
           }
         `}
       </style>
-      <div className="solar-panel-section mt-3 p-4" style={{ width: 750, position: 'relative' }}>
+      <div className="solar-panel-section mt-3 p-4" style={{ position: 'relative' }}>
         {/* Edit button top right */}
         <button
           className="btn btn-pay-now position-absolute"

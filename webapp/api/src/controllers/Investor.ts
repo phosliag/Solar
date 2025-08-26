@@ -3,7 +3,7 @@ import { MongoServerError } from "mongodb";
 import { createInvestor, getInvestors, getInvestorByEmail, updateInvestorById, deleteInvestorById, getInvestorById } from "../db/Investor";
 import { useBlockchainService } from '../services/blockchain.service'
 import { handleTransactionError, handleTransactionSuccess } from "../services/trx.service";
-import { CREATE_ACCOUNT_MULTIPLE } from "../utils/Constants";
+import { CREATE_ACCOUNT } from "../utils/Constants";
 import { useApiBridge } from "../services/api-bridge.service";
 import { createAccount } from "../services/api-smart-account.service";
 import bcrypt from 'bcryptjs';
@@ -76,7 +76,7 @@ export const registerInvestor = async (req: express.Request, res: express.Respon
 
       await handleTransactionSuccess(
         foundInvestorId,
-        CREATE_ACCOUNT_MULTIPLE,
+        CREATE_ACCOUNT,
         response.accounts[0]
       );
       // Llamar al faucet para la nueva cuenta
@@ -86,7 +86,7 @@ export const registerInvestor = async (req: express.Request, res: express.Respon
     } catch (error) {
       await handleTransactionError(
         foundInvestorId,
-        CREATE_ACCOUNT_MULTIPLE,
+        CREATE_ACCOUNT,
         error
       );
 
