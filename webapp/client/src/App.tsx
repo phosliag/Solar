@@ -8,7 +8,7 @@ import HolderList from "./admin/HolderList";
 import SignUp from "./components/Authentication/SignUp";
 import SignIn from "./components/Authentication/SignIn";
 import Oportunities from "./components/investor";
-import BondDetails from "./components/investor/Details";
+import Details from "./components/investor/Details";
 import Manage from "./admin/Manage";
 import BuyToken from "./admin/BuyToken";
 import RetailMarket from "./admin/RetailMarket";
@@ -40,7 +40,7 @@ function App() {
       <Route path="/investor/:id" element={<InvestorDetails />} />
       <Route path="/investor-dash" element={<Oportunities />} />
       <Route path="/investor-wallet" element={<InvestmentWallet />} />
-      <Route path="/purchase-details/:id" element={<BondDetails />} />
+      <Route path="/purchase-details/:id" element={<Details />} />
       <Route path="/my-panels" element={<MyPanels />} />
       <Route path="/panel-details" element={<PanelDetails />} />
       <Route path="/lux" element={<Lux />} />

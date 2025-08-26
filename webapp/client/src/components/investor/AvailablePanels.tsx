@@ -210,15 +210,15 @@ const AvailablePanels = ({ panels, user }: AvailablePanelsProps) => {
         </div>
       </div>
 
-      <div className="row">
+      <div className="row row-cols-1 row-cols-md-3 g-3 w-100">
         {paginatedPanels.length > 0 ? (
           paginatedPanels.map((panel) => (
-            <div key={panel._id} className="col-md-6 col-lg-4 mb-3">
+            <div key={panel._id} className="col mb-3">
               <PanelCard solarPanel={panel} user={user!} canBuy={user?.authImages?.validated} />
             </div>
           ))
         ) : (
-          <div className="col-md-12 text-center">
+          <div className="col-12 text-center">
             <p>No available panels for investment.</p>
           </div>
         )}

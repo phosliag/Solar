@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { useNavigate, useLocation } from "react-router-dom";
 import { deletePanel, updatePanel } from "../features/solarPanelSlice";
 import { SolarPanel } from "../SolarPanel";
 import { toast } from "react-toastify";
+import Papa from "papaparse";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import "react-toastify/dist/ReactToastify.css";
 
 
@@ -14,6 +16,9 @@ const PanelDetails: React.FC = () => {
 
   const panelData: SolarPanel = location.state?.panelData;
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [energyData, setEnergyData] = useState<{ date: string; total: number }[]>([]);
+  const [energyAverage, setEnergyAverage] = useState<number | null>(null);
+  const [showChart, setShowChart] = useState<boolean>(false);
 
   useEffect(() => {
     if (!panelData) {
@@ -30,6 +35,72 @@ const PanelDetails: React.FC = () => {
     document.title = "Solar Panel Details";
     if (errorMessage !== null) console.log(errorMessage);
   }, [errorMessage]);
+  const getCsvUrlForYear = (year: string) => `/mockPlacas/produccion_placas_luz_${year}.csv`;
+
+  const fetchAndParseCsv = (url: string): Promise<Array<{ Fecha: string; Produccion_Monocristalina_kWh: number }>> => {
+    return new Promise((resolve, reject) => {
+      Papa.parse(url, {
+        download: true,
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          if (results.errors && results.errors.length > 0) {
+            reject(results.errors);
+          } else {
+            const rows = (results.data as any[]).map((r) => ({
+              Fecha: String(r["Fecha"]),
+              Produccion_Monocristalina_kWh: Number(r["Produccion_Monocristalina_kWh"]) || 0,
+            }));
+            resolve(rows);
+          }
+        },
+        error: (error) => reject(error),
+      });
+    });
+  };
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const inferredYear = (panelData.installationYear ?? Number(String(panelData.name).slice(0, 4))) || new Date().getFullYear();
+        const url = getCsvUrlForYear(String(inferredYear));
+        const records = await fetchAndParseCsv(url);
+        // Filtrar los últimos 30 días usando mes y día
+        const today = new Date();
+        const points = records
+          .map((r) => {
+            // Asume formato 'YYYY-MM-DD' en r.Fecha
+            const [year, month, day] = r.Fecha.split('-').map(Number);
+            const dateObj = new Date(year, month - 1, day);
+            return {
+              date: `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+              total: r.Produccion_Monocristalina_kWh,
+              dateObj,
+            };
+          })
+          .filter((p) => Boolean(p.dateObj)) as { date: string; total: number; dateObj: Date }[];
+        // Solo los últimos 30 días
+        const last30 = points.filter(p => {
+          const diff = (today.getTime() - p.dateObj.getTime()) / (1000 * 60 * 60 * 24);
+          return diff >= 0 && diff < 30;
+        }).sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+        setEnergyData(last30.map(p => ({ date: p.date, total: p.total })));
+        if (last30.length > 0) {
+          const avg = last30.reduce((s, d) => s + d.total, 0) / last30.length;
+          setEnergyAverage(avg);
+        } else {
+          setEnergyAverage(null);
+        }
+      } catch (e) {
+        console.error("Error cargando producción:", e);
+        setEnergyData([]);
+        setEnergyAverage(null);
+      }
+    };
+    run();
+  }, [panelData]);
+
 
 
   const handleDelete = () => {
@@ -106,6 +177,38 @@ const PanelDetails: React.FC = () => {
             <strong>Estimated Production (kWh):</strong> <em>{formData.stimatedProduction ?? "--"}</em>
           </li>
         </ul>
+      </div>
+
+      {/* Section: Real Production (last 30 days) */}
+      <div className="card mb-3">
+        <div className="d-flex justify-content-between align-items-center">
+          <h4 className="mb-2">Real Production (last 30 days)</h4>
+          <button className="btn btn-pay-now" onClick={() => setShowChart((v) => !v)}>
+            {showChart ? 'Hide chart' : 'Show chart'}
+          </button>
+        </div>
+        {showChart && (
+          <div className="mt-3">
+            {energyAverage !== null && energyData.length > 0 ? (
+              <>
+                <div className="mb-2"><strong>Daily average:</strong> <em>{energyAverage.toFixed(2)} kWh</em></div>
+                <div style={{ width: "100%", height: 250 }}>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={energyData} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                      <YAxis />
+                      <Tooltip formatter={(value) => `${value} kWh`} />
+                      <Bar dataKey="total" fill="#82ca9d" name="Producción diaria (kWh)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </>
+            ) : (
+              <div>No hay datos de producción disponibles.</div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Actions */}

@@ -7,13 +7,12 @@ import { registerPurchase } from "../../features/solarPanelSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { toast, ToastContainer } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import csvText from '../../2025.csv?raw';
+import Papa from "papaparse";
 
-const BondDetails = () => {
+const Details = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { solarPanel, user }: { solarPanel: SolarPanel; user: Investor } = location.state;
 
   const error = useAppSelector((state) => state.solarPanel.error);
@@ -102,51 +101,74 @@ const BondDetails = () => {
     }
   };
 
-  // Función para leer y procesar el CSV
-  const fetchEnergyProduction = async (plateId: string) => {
-    try {
-      console.log('DEBUG: plateId buscado:', plateId);
-      // Usar el texto importado en vez de fetch
-      const text = csvText;
-      const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
-      const header = lines[0].split(",");
-      const allPlateIds = lines.slice(1).map(line => line.split(",")[0]);
-      console.log('DEBUG: PlateIDs en CSV:', Array.from(new Set(allPlateIds)));
-      // Mostrar las primeras 5 líneas parseadas para depuración
-      console.log('DEBUG: Primeras 5 líneas parseadas:', lines.slice(1, 6).map(line => line.split(",")));
-      const data = lines.slice(1)
-        .map(line => line.split(","))
-        .filter(cols => {
-          if (cols.length < 26) {
-            console.warn('Línea ignorada por tener menos de 26 columnas:', cols);
-            return false;
+  // Helpers para seleccionar y leer el CSV mock por año como en Payment
+  const getCsvUrlForYear = (year: string) => `/mockPlacas/produccion_placas_luz_${year}.csv`;
+
+  const fetchAndParseCsv = (url: string): Promise<Array<{ Fecha: string; Produccion_Monocristalina_kWh: number }>> => {
+    return new Promise((resolve, reject) => {
+      Papa.parse(url, {
+        download: true,
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          if (results.errors && results.errors.length > 0) {
+            reject(results.errors);
+          } else {
+            const rows = (results.data as any[]).map((r) => ({
+              Fecha: String(r["Fecha"]),
+              Produccion_Monocristalina_kWh: Number(r["Produccion_Monocristalina_kWh"]) || 0,
+            }));
+            resolve(rows);
           }
-          return cols[0].trim().toLowerCase() === plateId.trim().toLowerCase();
+        },
+        error: (error) => reject(error),
+      });
+    });
+  };
+
+  // Carga y prepara los últimos 30 días de kWh según el año de instalación
+  const fetchEnergyProduction = async () => {
+    try {
+      const inferredYear = (solarPanel.installationYear ?? Number(String(solarPanel.name).slice(0, 4))) || new Date().getFullYear();
+      const url = getCsvUrlForYear(String(inferredYear));
+      const records = await fetchAndParseCsv(url);
+      // Filtrar los últimos 30 días usando mes y día
+      const today = new Date();
+      const points = records
+        .map((r) => {
+          // Asume formato 'YYYY-MM-DD' en r.Fecha
+          const [year, month, day] = r.Fecha.split('-').map(Number);
+          const dateObj = new Date(year, month - 1, day);
+          return {
+            date: `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+            total: r.Produccion_Monocristalina_kWh,
+            dateObj,
+          };
         })
-        .map(cols => ({
-          date: cols[1],
-          total: cols.slice(2).reduce((sum, val) => sum + parseFloat(val || "0"), 0)
-        }));
-      // Ordenar por fecha descendente y tomar los últimos 30 días
-      const sorted = data.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30).reverse();
-      setEnergyData(sorted);
-      if (sorted.length > 0) {
-        const avg = sorted.reduce((sum, d) => sum + d.total, 0) / sorted.length;
+        .filter((p) => Boolean(p.dateObj)) as { date: string; total: number; dateObj: Date }[];
+      // Solo los últimos 30 días
+      const last30 = points.filter(p => {
+        const diff = (today.getTime() - p.dateObj.getTime()) / (1000 * 60 * 60 * 24);
+        return diff >= 0 && diff < 30;
+      }).sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+      setEnergyData(last30.map(p => ({ date: p.date, total: p.total })));
+      if (last30.length > 0) {
+        const avg = last30.reduce((sum, d) => sum + d.total, 0) / last30.length;
         setEnergyAverage(avg);
       } else {
         setEnergyAverage(null);
-        console.error('No se encontraron datos para el PlateID:', plateId);
       }
     } catch (err) {
+      console.error("Error cargando producción:", err);
       setEnergyData([]);
       setEnergyAverage(null);
-      console.error('Error leyendo el CSV:', err);
     }
   };
 
   useEffect(() => {
-    if (solarPanel && solarPanel.reference) {
-      fetchEnergyProduction(solarPanel.reference);
+    if (solarPanel) {
+      fetchEnergyProduction();
     }
   }, [solarPanel]);
 
@@ -392,4 +414,4 @@ const BondDetails = () => {
   );
 };
 
-export default BondDetails;
+export default Details;
