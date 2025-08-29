@@ -9,6 +9,7 @@ type ProductionRecord = { Fecha: string; Produccion_Monocristalina_kWh: number }
 
 const getCsvUrlForYear = (year: string) => `/mockPlacas/produccion_placas_luz_${year}.csv`;
 
+  // Función para cargar y parsear el CSV
 async function fetchAndParseCsv(url: string): Promise<ProductionRecord[]> {
   return new Promise((resolve, reject) => {
     Papa.parse(url, {
@@ -31,7 +32,7 @@ async function fetchAndParseCsv(url: string): Promise<ProductionRecord[]> {
     });
   });
 }
-
+// Funcion para construir los datos de los últimos 30 días para la grafica
 function buildLast30(records: ProductionRecord[]): { data: { date: string; total: number }[]; avg: number | null } {
   // Crear un mapa por MM-DD -> kWh usando el CSV (ignora el año)
   const monthDayToKwh: Record<string, number> = {};
@@ -120,6 +121,7 @@ const MyPanels = () => {
     run();
   }, [panels]); // <--- Solo se ejecuta cuando cambian los paneles
 
+  // Construir un mapa de panelId -> { data, avg } para los datos de producción de los últimos 30 días para mostrar en la gráfica
   const panelIdToSeries = useMemo(() => {
     const map: Record<string, { data: { date: string; total: number }[]; avg: number | null }> = {};
     for (const p of panels as any[]) {

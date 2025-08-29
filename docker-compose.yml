@@ -1,0 +1,56 @@
+
+networks:
+  solar-network:
+    name: solar-network
+    driver: bridge
+
+services:
+  erc721:
+    build: ./tokenization-API/ERC721  # Path to build the ERC721 API image
+    container_name: erc721
+    ports:
+      - "3000:3000"
+    working_dir: /app
+    command: node dist/main.js
+    networks:
+      - solar-network
+
+  sa-solar:
+    build: ./tokenization-API/SA  # Path to build the SA API image
+    container_name: sa-solar
+    ports:
+      - "4000:4000"
+    working_dir: /app
+    command: node dist/main.js
+    networks:
+      - solar-network
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - solar-network
+
+  solar:
+    build: ./webapp  # Path to build the Solar webapp image
+    container_name: solar
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/Luz
+      - HOST_SMART_ACCOUNT=http://sa-solar:4000
+      - HOST_BRIDGE=http://erc721:3000
+    depends_on:
+      - mongo
+      - erc721
+      - sa-solar
+    networks:
+      - solar-network
+    command: npm run dev
+
+volumes:
+  mongo_data:

@@ -37,6 +37,7 @@ const PanelDetails: React.FC = () => {
   }, [errorMessage]);
   const getCsvUrlForYear = (year: string) => `/mockPlacas/produccion_placas_luz_${year}.csv`;
 
+  // Función para cargar y parsear el CSV
   const fetchAndParseCsv = (url: string): Promise<ProductionRecord[]> => {
     return new Promise((resolve, reject) => {
       Papa.parse(url, {
@@ -62,6 +63,7 @@ const PanelDetails: React.FC = () => {
   };
 
   useEffect(() => {
+    // Carga los datos de producción de kWh del csv para mock de datos
     const run = async () => {
       try {
         const inferredYear = (panelData.installationYear ?? Number(String(panelData.name).slice(0, 4))) || new Date().getFullYear();
@@ -303,6 +305,7 @@ const ModalEditPanel: React.FC<ModalEditPanelProps> = ({ panel, onSave, onClose 
   );
 };
 
+// Funcion para construir los datos de los últimos 30 días para la grafica
 function buildLast30(records: ProductionRecord[]): { data: { date: string; total: number }[]; avg: number | null } {
   const monthDayToKwh: Record<string, number> = {};
   for (const r of records) {
