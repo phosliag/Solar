@@ -13,9 +13,8 @@ export interface PaymentRecord {
 
 
 const EnterpriseWallet = () => {
+
   const [clipboardCopy, setClipboardCopy] = useState("");
-  const [record, setRecord] = useState<PaymentRecord[]>([]);
-  const [visibleCount, setVisibleCount] = useState(5); // Número inicial de registros visibles
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   const tokenList: any[] = useAppSelector((state) => state.solarPanel.tokenList) || [];
@@ -28,27 +27,16 @@ const EnterpriseWallet = () => {
   const navigate = useNavigate()
 
   const userId = useAppSelector((state) => state.user.userLoged?._id);
-  //TODO: Que wallet utilizar ya que ahora no existe usuario tipo Issuer
   const wallet = process.env.ADMIN_ACCOUNTS_PUBLIC_KEY || "0x0480927822BA8f929D448B7EC30E65Eb4a986983"
 
   const panels = useAppSelector((state) => state.solarPanel.panels) || [];
-
-  const priceTotal = tokenList?.reduce((acc, token) => {
-    if (!acc[token.network]) {
-      acc[token.network] = [];
-    }
-    acc[token.network].push(token.amountAvaliable || 0);
-    return acc;
-  }, {} as Record<string, number[]>);
-
-  // Calcular suma por red
-  const sumByNetwork = priceTotal ? Object.entries(priceTotal).reduce((acc, [network, values]) => {
-    acc[network] = (values as number[]).reduce((sum: number, value: number) => sum + value, 0);
-    return acc;
-  }, {} as Record<string, number>) : {};
-
-  // Calcular total general
-  const totalSum = Object.values(sumByNetwork).reduce((sum, value) => sum + value, 0);
+  // Paginación para la tabla de panels
+  const [page, setPage] = useState<number>(1);
+  const PAGE_SIZE = 10;
+  const totalItems = panels.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedPanels = panels.slice((currentPage - 1) * PAGE_SIZE, (currentPage - 1) * PAGE_SIZE + PAGE_SIZE);
 
 
   useEffect(() => {
@@ -61,16 +49,13 @@ const EnterpriseWallet = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    // dispatch(readBonds(userId || ""));
 
     const fetchData = async () => {
       try {
         console.log(userId + " USER ID");
-        // const data = await dispatch(getInvestorWalletData(userId || "")).unwrap();
-        // setWalletData(data);
+
         console.log(wallet + " WALLET DATA");
 
-        //TODO: Que wallet es necesaria 
         const dataFaucet = await dispatch(getFaucetBalance(wallet!)).unwrap();
         console.log(dataFaucet + " BALANCE");
         setBalanceData(dataFaucet);
@@ -81,7 +66,7 @@ const EnterpriseWallet = () => {
     };
 
     fetchData();
-  }, []);
+  }, [dispatch, userId, wallet]);
 
   const handleCopy = (e: React.MouseEvent<HTMLParagraphElement>) => {
     setClipboardCopy(e.currentTarget.innerText);
@@ -89,20 +74,15 @@ const EnterpriseWallet = () => {
     navigator.clipboard.writeText(clipboardCopy);
   };
 
-  const handleShowMore = () => {
-    setVisibleCount((prev) => prev + 5); // Incrementa el número de registros visibles
-  };
-
   return (
     <>
       <div className="solar-panel-section mt-4">
-        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-start" }}>
-          <button className="btn btn-back mr-3"
-            onClick={() => navigate("/admin-dash")}>
+        <div className="d-flex justify-content-end w-100 position-absolute top-0 end-0 p-3" style={{ zIndex: 10 }}>
+          <button className="btn btn-back" onClick={() => navigate(-1)}>
             Back
           </button>
         </div>
-        <h2 className="mb-3" style={{ color: "var(--color-green-main)" }}>ENTERPRISE WALLET</h2>
+        <h2 className="section-title mb-3" style={{ textAlign: "center" }}>ENTERPRISE WALLET</h2>
 
         <h3 className="section-title">Your Wallet Address:</h3>
         <div className="wallet-address col-12">
@@ -121,7 +101,7 @@ const EnterpriseWallet = () => {
           <>
             <h3 className="section-title mt-4">Total stable coins: {balanceData}</h3>
 
-            <h3 className="section-title mt-4">Overview of Balance</h3>
+            {/* <h3 className="section-title mt-4">Overview of Balance</h3>
             <h4
               data-bs-toggle="collapse"
               data-bs-target="#balance-collapse"
@@ -141,38 +121,64 @@ const EnterpriseWallet = () => {
                   <strong>Amoy:</strong> {sumByNetwork.AMOY}
                 </li>
               </ul>
-            </div>
+            </div> */}
 
             <h3 className="section-title mt-4">Tokens in circulation</h3>
 
             {panels && panels.length > 0 ? (
-              <table
-                border={1}
-                className="table-hl"
-                style={{ borderCollapse: "collapse", width: "100%", textAlign: "center" }}>
-                <thead className="admin-table-header">
-                  <tr>
-                    <th>Panel Name</th>
-                    <th>Reference</th>
-                    <th>Owner</th>
-                    <th>Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {panels.map((panel) => (
-                    <tr key={panel.name} className="admin-table-cell">
-                      <td>{panel.name}</td>
-                      <td>{panel.reference}</td>
-                      <td>{panel.owner}</td>
-                      <td>
-                        {typeof panel.price === 'object' && '$numberDecimal' in panel.price
-                          ? panel.price.$numberDecimal
-                          : String(panel.price)} €
-                      </td>
+              <>
+                <table
+                  border={1}
+                  className="table-hl"
+                  style={{ borderCollapse: "collapse", width: "100%", textAlign: "center" }}>
+                  <thead className="admin-table-header">
+                    <tr>
+                      <th>Panel Name</th>
+                      <th>Reference</th>
+                      <th>Owner</th>
+                      <th>Price</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {paginatedPanels.map((panel) => (
+                      <tr key={panel.name} className="admin-table-cell">
+                        <td>{panel.name}</td>
+                        <td>{panel.reference}</td>
+                        <td>{panel.owner}</td>
+                        <td>
+                          {typeof panel.price === 'object' && '$numberDecimal' in panel.price
+                            ? panel.price.$numberDecimal
+                            : String(panel.price)} €
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="d-flex justify-content-between align-items-center mt-3">
+                  <div>
+                    {`Showing ${totalItems === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} - ${Math.min(currentPage * PAGE_SIZE, totalItems)} of ${totalItems}`}
+                  </div>
+                  <nav aria-label="Page navigation">
+                    <ul className="pagination pagination-themed justify-content-center mb-0">
+                      <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                        <button className="page-link" onClick={() => setPage((p) => Math.max(1, p - 1))} aria-label="Previous">
+                          <span aria-hidden="true">&laquo;</span>
+                        </button>
+                      </li>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                        <li key={p} className={`page-item ${p === currentPage ? "active" : ""}`}>
+                          <button className="page-link" onClick={() => setPage(p)}>{p}</button>
+                        </li>
+                      ))}
+                      <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                        <button className="page-link" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} aria-label="Next">
+                          <span aria-hidden="true">&raquo;</span>
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </>
             ) : (
               <p>There are no tokens available in circulation.</p>
             )}

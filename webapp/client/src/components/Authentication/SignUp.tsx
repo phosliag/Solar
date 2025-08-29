@@ -29,73 +29,17 @@ const SignUp = () => {
     document.title = "Register User";
   }, []);
 
-  const signUp = useGoogleLogin({
-    onSuccess: (credentialRes) => {
-      console.log(credentialRes);
-      const decodedInfo: GoogleJwtPayload = jwtDecode(credentialRes.access_token || "");
-      console.log(decodedInfo);
-
-      const investor: Investor = {
-        name: decodedInfo.given_name,
-        surname: decodedInfo.family_name,
-        email: decodedInfo.email,
-        idCard: '',
-        country: '',
-        walletAddress: '',
-        accounts: [],
-        _id: undefined,
-      };
-
-      dispatch(registerInvestor(investor));
-    },
-    onError: () => console.log("failed"),
-  });
-
-  // const handleGoogleLoginSuccess = (credentialRes: any) => {
-  //   console.log(credentialRes);
-  //   const decodedInfo: GoogleJwtPayload = jwtDecode(credentialRes.credential || "");
-  //   console.log(decodedInfo);
-
-  //   const investor: Investor = {
-  //     name: decodedInfo.given_name,
-  //     surname: decodedInfo.family_name,
-  //     email: decodedInfo.email,
-  //     idCard: '',
-  //     country: '',
-  //     walletAddress: '',
-  //     accounts: [],
-  //     _id: undefined,
-  //   };
-
-  //   dispatch(registerInvestor(investor));
-  // };
-
   return (
     <div className="container-fluid mt-3 d-flex justify-content-center align-items-center">
       <div className="solar-panel-section mt-3">
         <h2 className="mb-4" style={{ textAlign: "center", color: "var(--color-green-main)" }}>SIGN UP</h2>
 
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
-          {/* <button className="btn"
-            onClick={() => signUp()}
-            style={{
-              padding: "10px 25px",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-            }}
-          >
-            <img
-              src="/images/Google_Favicon_2025.svg"
-              alt="Google"
-              style={{ width: "20px", height: "20px" }}
-            />
-            Sign in with Google
-          </button> */}
+          {/* Boton para registrarse usando una cuenta de Google */}
           <GoogleLogin
             onSuccess={
+              // Manejar el inicio de sesión exitoso, extrayendo la información del usuario para crear
+              // un nuevo objeto Investor con los datos que devuelve el token
               (credentialRes) => {
                 console.log(credentialRes)
                 const decodedInfo: GoogleJwtPayload = jwtDecode(credentialRes.credential || '')
@@ -114,6 +58,7 @@ const SignUp = () => {
                 navigate("/investor-dash");
               }
             }
+            // Manejar el error en caso de fallo
             onError={() => console.log('failed')}
             width={'100px'} theme="outline" size="large" shape="rectangular" text="signup_with" locale="en"/>
 

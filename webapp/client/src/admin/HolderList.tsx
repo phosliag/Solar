@@ -13,7 +13,7 @@ const HolderList = () => {
   }, [dispatch]);
 
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const filteredUsers = users.filter((user: any) => (user.userId || "").toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredUsers = users.filter((user) => (user.userId || "").toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div
@@ -42,7 +42,7 @@ const HolderList = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredUsers?.map((user: any) => (
+          {filteredUsers?.map((user) => (
             <tr key={user._id}>
               <td>{user.userId}</td>
               <td>{user.reference}</td>
@@ -50,12 +50,8 @@ const HolderList = () => {
           ))}
         </tbody>
       </table>
-      <div className="container-md row m-3" style={{ display: "flex", gap: "20px" }}>
-        <button
-          type="button"
-          className="btn btn-back col-sm-2"
-          onClick={() => navigate("/manage-bonds")}
-          style={{ alignSelf: "start" }}>
+      <div className="d-flex justify-content-end w-100 position-absolute top-0 end-0 p-3" style={{ zIndex: 10 }}>
+        <button className="btn btn-back" onClick={() => navigate(-1)}>
           Back
         </button>
       </div>

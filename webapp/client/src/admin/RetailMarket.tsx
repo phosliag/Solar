@@ -141,7 +141,9 @@ const RetailMarket = () => {
             <button
               type="button"
               className="btn btn-back col-sm-2"
-              onClick={() => navigate("/manage-bonds")}>Cancel</button>
+              onClick={() => navigate(-1)}>
+              Back
+            </button>
           </div>
         </form>
 

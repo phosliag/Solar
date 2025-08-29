@@ -17,6 +17,16 @@ const Oportunities = () => {
     dispatch(getRetailMarketPanels())
   }, [dispatch]);
 
+  useEffect(() => {
+  const timer = setTimeout(() => {
+    if (!user) {
+      navigate('/user-access');
+    }
+  }, 100); // 200 ms de retraso
+
+  return () => clearTimeout(timer); // limpiar si se desmonta antes
+}, [user, navigate]);
+
   const validated = useMemo(() => user?.authImages?.validated === true, [user?.authImages?.validated]);
 
   const { shouldShowNotice, noticeMessage } = useMemo(() => {
@@ -64,14 +74,8 @@ const Oportunities = () => {
       <div className="container mt-3 ">
         <div className="solar-panel-section mt-3 d-flex justify-content-center align-items-center" style={{ minWidth: "100vh" }}>
           <div className="position-absolute top-0 end-0 m-3">
-            {/* <button className="btn btn-pay-now me-2" onClick={() => navigate("/investor-wallet")}>My investor Wallet</button>
-            <button className="btn btn-pay-now me-2" onClick={() => navigate("/my-panels")}>My Panels & Production</button>
-            <button className="btn btn-back" onClick={() => navigate("/user-access")}>Log out</button> */}
             <Dropdown>
-              {/* <Dropdown.Toggle  id="dropdown-basic" className="btn border-0 shadow-none">
-                <i className="bi bi-three-dots-vertical fs-4"></i> 
-              </Dropdown.Toggle> */}
-              <Dropdown.Toggle as="button" variant="" className="d-flex gap-2 border-0 bg-transparent p-0 " id="dropdown-avatar">
+              <Dropdown.Toggle as="button" variant="" className="d-flex gap-2 border-0 bg-transparent p-0 align-items-center" id="dropdown-avatar">
                 <img
                   src={"/images/user.png"} // Imagen del usuario o fallback
                   alt="User"

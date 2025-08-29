@@ -5,7 +5,7 @@ import { SolarPanel } from "../SolarPanel";
 import { useNavigate } from "react-router-dom";
 import Papa from "papaparse";
 
-interface ProductionRecord {
+export interface ProductionRecord {
   Fecha: string;
   Produccion_Monocristalina_kWh: number;
   Precio_Luz_Euro_kWh: number;
@@ -24,8 +24,8 @@ const PaymentManagement = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const panels: SolarPanel[] = useAppSelector((state) => state.solarPanel.panels) || [];
-  const invoices: any[] = useAppSelector((state) => state.solarPanel.invoices) || [];
-  
+  const invoices = useAppSelector((state) => state.solarPanel.invoices) || [];
+
   const [rows, setRows] = useState<MonthlyPanelPayment[]>([]);
   const [loadingProduction, setLoadingProduction] = useState(false);
   const [errorProduction, setErrorProduction] = useState<string | null>(null);
@@ -216,6 +216,14 @@ const PaymentManagement = () => {
     .filter((r) => selectedPanelIds.includes(r.panelId))
     .reduce((sum, r) => sum + r.totalEnEuro, 0);
 
+  // Paginación
+  const [page, setPage] = useState<number>(1);
+  const PAGE_SIZE = 10;
+  const totalItems = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedRows = rows.slice((currentPage - 1) * PAGE_SIZE, (currentPage - 1) * PAGE_SIZE + PAGE_SIZE);
+
   // Procesa los pagos en lote para las filas seleccionadas
   async function handlePayBatch() {
     try {
@@ -241,14 +249,14 @@ const PaymentManagement = () => {
 
 
   return (
-    <div className="solar-panel-section mt-4" style={{ position: "relative" }}>
-      <div className="m-3" style={{ display: "flex", justifyContent: "end" }}>
-        <button className="btn btn-back" onClick={() => navigate("/admin-dash")} >
+    <div className="solar-panel-section">
+      <div className="d-flex justify-content-end w-100 position-absolute top-0 end-0 p-3" style={{ zIndex: 10 }}>
+        <button className="btn btn-back" onClick={() => navigate(-1)}>
           Back
         </button>
       </div>
 
-      <h2 className="mb-3">PAYMENT MANAGEMENT</h2>
+      <h2 className="section-title mb-3" style={{ textAlign: "center" }}>PAYMENT MANAGEMENT</h2>
 
       <h4 className="pending-payments mt-4" style={{ textAlign: "left" }}>
         Pending Payments:
@@ -281,64 +289,84 @@ const PaymentManagement = () => {
       )}
 
       {rows.length > 0 && (
-        <table className="table-hl">
-          <thead style={{ backgroundColor: "#7ba6e9", color: "white" }}>
-            <tr>
-              <th>
-                <input
-                  type="checkbox"
-                  aria-label="Select all"
-                  checked={selectedPanelIds.length > 0 && selectedPanelIds.length === rows.length}
-                  onChange={(e) => toggleSelectAll(e.target.checked)}
-                />
-              </th>
-              <th>Panel</th>
-              <th>Owner</th>
-              <th>Date</th>
-              <th>kWh (mes)</th>
-              <th>Total earned (€)</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.panelId}>
-                <td>
+        <>
+          <table className="table-hl">
+            <thead style={{ backgroundColor: "#7ba6e9", color: "white" }}>
+              <tr>
+                <th>
                   <input
                     type="checkbox"
-                    checked={selectedPanelIds.includes(row.panelId)}
-                    onChange={() => toggleSelect(row.panelId)}
+                    aria-label="Select all"
+                    checked={selectedPanelIds.length > 0 && selectedPanelIds.length === rows.length}
+                    onChange={(e) => toggleSelectAll(e.target.checked)}
                   />
-                </td>
-                <td>{row.panelName}</td>
-                <td>{row.owner}</td>
-                <td>{row.fecha}</td>
-                <td>{row.kwh}</td>
-                <td>{row.totalEnEuro}</td>
-                <td>
-                  <button
-                    className="btn-pay-now"
-                    disabled={isLoading || !isRowPayable(row)}
-                    onClick={() => handlePaySingle(row)}
-                  >
-                    {isLoading ? (
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    ) : (
-                      "Pay"
-                    )}
-                  </button>
-                </td>
+                </th>
+                <th>Panel</th>
+                <th>Owner</th>
+                <th>Date</th>
+                <th>kWh (mes)</th>
+                <th>Total earned (€)</th>
+                <th>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginatedRows.map((row) => (
+                <tr key={row.panelId}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedPanelIds.includes(row.panelId)}
+                      onChange={() => toggleSelect(row.panelId)}
+                    />
+                  </td>
+                  <td>{row.panelName}</td>
+                  <td>{row.owner}</td>
+                  <td>{row.fecha}</td>
+                  <td>{row.kwh}</td>
+                  <td>{row.totalEnEuro}</td>
+                  <td>
+                    <button
+                      className="btn-pay-now"
+                      disabled={isLoading || !isRowPayable(row)}
+                      onClick={() => handlePaySingle(row)}
+                    >
+                      {isLoading ? (
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      ) : (
+                        "Pay"
+                      )}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="d-flex justify-content-between align-items-center mt-3">
+            <div>
+              {`Showing ${totalItems === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} - ${Math.min(currentPage * PAGE_SIZE, totalItems)} of ${totalItems}`}
+            </div>
+            <nav aria-label="Page navigation">
+              <ul className="pagination pagination-themed justify-content-center mb-0">
+                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                  <button className="page-link" onClick={() => setPage((p) => Math.max(1, p - 1))} aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </button>
+                </li>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <li key={p} className={`page-item ${p === currentPage ? "active" : ""}`}>
+                    <button className="page-link" onClick={() => setPage(p)}>{p}</button>
+                  </li>
+                ))}
+                <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                  <button className="page-link" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </>
       )}
-
-      {false}
-
-      <button className="btn-back mt-4" onClick={() => navigate(-1)}>
-        BACK
-      </button>
     </div>
   );
 };

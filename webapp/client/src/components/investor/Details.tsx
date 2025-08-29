@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { SolarPanel } from "../../SolarPanel";
 import { Investor } from "../Authentication/InvestorRegistration";
 import { PurchaseData } from "../../admin/BuyToken";
@@ -15,16 +16,23 @@ const Details = () => {
   const navigate = useNavigate();
   const { solarPanel, user }: { solarPanel: SolarPanel; user: Investor } = location.state;
 
+  // Redirigir si user es null
+  useEffect(() => {
+    if (!user) {
+      navigate('/user-access');
+    }
+  }, [user, navigate]);
+
   const error = useAppSelector((state) => state.solarPanel.error);
 
   const [showPopup, setShowPopup] = useState(false);
+  const [showChartPopup, setShowChartPopup] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [purchaseDetails, setPurchaseDetails] = useState<any>(null);
   const [transactionDetails, setTransactionDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [requestResult, setRequestResult] = useState<any>(null);
-  const [energyData, setEnergyData] = useState<{ date: string; total: number }[]>([]);
-  const [energyAverage, setEnergyAverage] = useState<number | null>(null);
+  const [records, setRecords] = useState<Array<{ Fecha: string; Produccion_Monocristalina_kWh: number }>>([]);
 
   // Use the correct PurchaseData type
   const [purchaseData, setPurchaseData] = useState<PurchaseData>({
@@ -79,25 +87,11 @@ const Details = () => {
         setTransactionDetails(result.payload.transactions);
         setShowPopup(false);
         setShowSuccessModal(true);
+        // Redirige a la pantalla anterior tras compra exitosa
+        navigate(-1);
       }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    navigate("/investor-dash");
-  };
-
-  const getPrefixedTrx = (network: string, trx: string) => {
-    switch (network) {
-      case 'ALASTRIA':
-        return `https://b-network.alastria.izer.tech/tx/${trx}`;
-      case 'AMOY':
-        return `https://amoy.polygonscan.com/tx/${trx}`;
-      default:
-        return trx;
     }
   };
 
@@ -128,52 +122,43 @@ const Details = () => {
   };
 
   // Carga y prepara los últimos 30 días de kWh según el año de instalación
-  const fetchEnergyProduction = async () => {
-    try {
-      const inferredYear = (solarPanel.installationYear ?? Number(String(solarPanel.name).slice(0, 4))) || new Date().getFullYear();
-      const url = getCsvUrlForYear(String(inferredYear));
-      const records = await fetchAndParseCsv(url);
-      // Filtrar los últimos 30 días usando mes y día
-      const today = new Date();
-      const points = records
-        .map((r) => {
-          // Asume formato 'YYYY-MM-DD' en r.Fecha
-          const [year, month, day] = r.Fecha.split('-').map(Number);
-          const dateObj = new Date(year, month - 1, day);
-          return {
-            date: `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-            total: r.Produccion_Monocristalina_kWh,
-            dateObj,
-          };
-        })
-        .filter((p) => Boolean(p.dateObj)) as { date: string; total: number; dateObj: Date }[];
-      // Solo los últimos 30 días
-      const last30 = points.filter(p => {
-        const diff = (today.getTime() - p.dateObj.getTime()) / (1000 * 60 * 60 * 24);
-        return diff >= 0 && diff < 30;
-      }).sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
-      setEnergyData(last30.map(p => ({ date: p.date, total: p.total })));
-      if (last30.length > 0) {
-        const avg = last30.reduce((sum, d) => sum + d.total, 0) / last30.length;
-        setEnergyAverage(avg);
-      } else {
-        setEnergyAverage(null);
-      }
-    } catch (err) {
-      console.error("Error cargando producción:", err);
-      setEnergyData([]);
-      setEnergyAverage(null);
+  // Igual que en MyPanels pero para un solo panel
+  function buildLast30(records: Array<{ Fecha: string; Produccion_Monocristalina_kWh: number }>): { data: { date: string; total: number }[]; avg: number | null } {
+    const monthDayToKwh: Record<string, number> = {};
+    for (const r of records) {
+      if (!r.Fecha) continue;
+      const d = new Date(r.Fecha);
+      if (isNaN(d.getTime())) continue;
+      const key = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      monthDayToKwh[key] = Number(r.Produccion_Monocristalina_kWh) || 0;
     }
-  };
+    const today = new Date();
+    const series: { date: string; total: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      const key = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const val = monthDayToKwh[key] ?? 0;
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      series.push({ date: iso, total: val });
+    }
+    const avg = series.length > 0 ? series.reduce((s, p) => s + p.total, 0) / series.length : null;
+    return { data: series, avg };
+  }
 
   useEffect(() => {
     if (solarPanel) {
-      fetchEnergyProduction();
+      const inferredYear = (solarPanel.installationYear ?? Number(String(solarPanel.name).slice(0, 4))) || new Date().getFullYear();
+      const url = getCsvUrlForYear(String(inferredYear));
+      fetchAndParseCsv(url)
+        .then(setRecords)
+        .catch(() => setRecords([]));
     }
   }, [solarPanel]);
 
   return (
-    <div className="container d-flex justify-content-center" style={{ width: "140vh" }}>
+  <div className="container d-flex justify-content-center" style={{ width: "140vh" }}>
       <style>
         {`
           .spinner-overlay {
@@ -268,6 +253,11 @@ const Details = () => {
             </li>
             <li>
               <strong>Stimated Production:</strong> <em>{solarPanel.stimatedProduction}</em>
+              <span style={{ marginLeft: '1rem' }}>
+                <a href="#" onClick={(e) => { e.preventDefault(); setShowChartPopup(true); }}>
+                  Ver gráfica de producción
+                </a>
+              </span>
             </li>
           </ul>
         </div>
@@ -303,7 +293,7 @@ const Details = () => {
               <div className="row d-flex justify-content-center align-items-center">
                 <div className="col-sm-6 mb-3 text-start">
                   <label htmlFor="userId" className="form-label text-start">
-                    User ID:
+                    User:
                   </label>
                   <input
                     type="text"
@@ -341,74 +331,43 @@ const Details = () => {
             </div>
           </div>
         )}
-        {/* {showSuccessModal && (
-          <div className="popup-overlay">
-            <div className="popup" style={{ width: '600px' }}>
-              <h2 className="text-success mb-4" style={{ textAlign: "center" }}>
-                {requestResult?.meta?.requestStatus === 'rejected' ? 'Purchase Error!' : 'Successful Purchase!'}
-              </h2>
-              <div className="purchase-details mb-4">
-                {requestResult?.meta?.requestStatus === 'rejected' ? (
-                  <div className="alert alert-danger" role="alert">
-                    {JSON.stringify(transactionDetails, null, 2)}
-                  </div>
-                ) : (
+        
+        {/* Popup para gráfica de producción */}
+        {showChartPopup && (
+          <div className="popup-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowChartPopup(false); }} style={{ zIndex: 2000 }}>
+            <div className="popup" style={{ background: '#fff', padding: '2rem', borderRadius: '8px', maxWidth: '700px', margin: '5rem auto' }}>
+              <h4 className="text-start mb-3">Producción de Energía (últimos 30 días)</h4>
+              {(() => {
+                const { data, avg } = buildLast30(records);
+                return avg !== null ? (
                   <>
-                    <h4 className="text-primary mb-3">Transaction Details:</h4>
-                    <ul className="list-unstyled">
-                      <li className="mb-3">
-                        <strong>Stable:</strong> 
-                        <div className="text-break" style={{ wordBreak: 'break-all' }}>
-                          <a href={getPrefixedTrx(purchaseDetails.destinationBlockchain, transactionDetails.stable)} target="_blank" rel="noopener noreferrer">{transactionDetails.stable}</a>
-                        </div>
-                      </li>
-                      <li className="mb-3">
-                        <strong>Transfer:</strong>
-                        <div className="text-break" style={{ wordBreak: 'break-all' }}>
-                          <a href={getPrefixedTrx(purchaseDetails.destinationBlockchain, transactionDetails.transfer)} target="_blank" rel="noopener noreferrer">{transactionDetails.transfer}</a>
-                        </div>
-                      </li>
-                    </ul>
+                    <div style={{ marginBottom: "1rem" }}>
+                      <strong>Media diaria:</strong> <em>{avg.toFixed(2)} kWh</em>
+                    </div>
+                    <div style={{ width: "100%", height: 300 }}>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <YAxis />
+                          <Tooltip formatter={(value) => `${value} kWh`} />
+                          <Bar dataKey="total" fill="#82ca9d" name="Producción diaria (kWh)" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </>
-                )}
-              </div>
-              <div className="popup-actions mt-5" style={{ textAlign: "center" }}>
-                <button className="btn btn-success" onClick={handleCloseSuccessModal}>
-                  Continue
-                </button>
+                ) : (
+                  <div>
+                    <em>No hay datos de producción disponibles para esta placa.</em>
+                  </div>
+                );
+              })()}
+              <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                <button className="btn btn-back" onClick={() => setShowChartPopup(false)}>Cerrar</button>
               </div>
             </div>
           </div>
-        )} */}
-        <div className="mb-3">
-          <h4 className="text-start" style={{ marginLeft: "5rem" }}>
-            Producción de Energía (últimos 30 días):
-          </h4>
-          <div>
-            {energyAverage !== null ? (
-              <>
-                <div style={{ marginLeft: "5rem", marginBottom: "1rem" }}>
-                  <strong>Media diaria:</strong> <em>{energyAverage.toFixed(2)} kWh</em>
-                </div>
-                <div style={{ width: "90%", height: 300, margin: "0 auto" }}>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={energyData} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                      <YAxis />
-                      <Tooltip formatter={(value) => `${value} kWh`} />
-                      <Bar dataKey="total" fill="#82ca9d" name="Producción diaria (kWh)" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </>
-            ) : (
-              <div style={{ marginLeft: "5rem" }}>
-                <em>No hay datos de producción disponibles para esta placa.</em>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

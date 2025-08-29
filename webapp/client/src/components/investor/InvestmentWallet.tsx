@@ -3,26 +3,32 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 // import { readBonds } from "../../features/bondSlice";
 import { getFaucetBalance } from "../../features/userSlice";
 import { useNavigate } from "react-router-dom";
-import { getTokenListAndUpcomingPaymentsByInvestor, readPanels } from "../../features/solarPanelSlice";
+import { getTokenListAndUpcomingPaymentsByInvestor, readPanels, getPendingPayments } from "../../features/solarPanelSlice";
 import type { SolarPanel } from "../../SolarPanel";
 import Papa from "papaparse";
 
 const InvestmentWallet: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  // const bonds = useAppSelector((state) => state.bond.bonds);
   const user = useAppSelector((state) => state.user.userLoged);
+
   const userId = user?._id;
-  // const [walletData, setWalletData] = useState(null);
   const [balanceData, setBalanceData] = useState(null);
   const [clipboardCopy, setClipboardCopy] = useState("");
   const wallet = user?.walletAddress;
   const tokenList = useAppSelector((state) => state.solarPanel.tokenList);
   const upcomingPayment = useAppSelector((state) => state.solarPanel.upcomingPayment);
   const panels: SolarPanel[] = useAppSelector((state) => state.solarPanel.panels) || [];
+  const invoices: any[] = useAppSelector((state) => state.solarPanel.invoices) || [];
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [loadingProduction, setLoadingProduction] = useState(false);
   const [productionRows, setProductionRows] = useState<Array<{ panelId: string; panelName: string; fecha: string; kwh: number; totalEnEuro: number }>>([]);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/user-access');
+    }
+  }, [user, navigate]);
 
   const handleCopy = (e: React.MouseEvent<HTMLParagraphElement>) => {
     setClipboardCopy(e.currentTarget.innerText);
@@ -65,10 +71,7 @@ const InvestmentWallet: React.FC = () => {
         const fetchAndParseCsv = (url: string): Promise<Array<{ Fecha: string; Produccion_Monocristalina_kWh: number; Precio_Luz_Euro_kWh: number }>> =>
           new Promise((resolve, reject) => {
             Papa.parse(url, {
-              download: true,
-              header: true,
-              dynamicTyping: true,
-              skipEmptyLines: true,
+              download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
               complete: (results) => {
                 if (results.errors.length > 0) reject(results.errors);
                 else resolve(results.data as any);
@@ -94,28 +97,37 @@ const InvestmentWallet: React.FC = () => {
           targetYear -= 1;
         }
         const lastDay = new Date(targetYear, targetMonth + 1, 0).getDate();
-        const fechaStr = `${targetYear}-${(targetMonth + 1).toString().padStart(2, "0")}-${lastDay.toString().padStart(2, "0")}`;
 
-        // Compute per-panel totals using its year's CSV
+        // Compute per-panel totals using its year's CSV, but use the month of the next unpaid invoice payment date for each panel
         const buildRows: Array<{ panelId: string; panelName: string; fecha: string; kwh: number; totalEnEuro: number }> = ownedPanels.map((p) => {
           const inferredYear = (p.installationYear ?? Number(String(p.name).slice(0, 4))) || now.getFullYear();
           const yearStr = String(inferredYear);
           const records = recordsByYear[yearStr] || [];
+          // Find the next unpaid invoice payment date for this panel and user
+          const invoicePayments = invoices
+            .flatMap((inv) => (inv.payments || []).filter((pay) => pay.paid === false))
+            .sort((a, b) => new Date(a.timeStamp).getTime() - new Date(b.timeStamp).getTime());
+          // Always use paymentDate from invoicePayments, or 'N/A' if not available
+          const paymentDate = invoicePayments.length > 0 ? new Date(invoicePayments[0].timeStamp) : null;
+          console.log('Actual paymentDate:', paymentDate);
           let monthKwh = 0;
           let monthEuro = 0;
-          records.forEach(({ Fecha, Produccion_Monocristalina_kWh, Precio_Luz_Euro_kWh }) => {
-            const d = new Date(Fecha);
-            if (d.getMonth() === targetMonth) {
-              const kwh = Number(Produccion_Monocristalina_kWh) || 0;
-              const price = Number(Precio_Luz_Euro_kWh) || 0;
-              monthKwh += kwh;
-              monthEuro += kwh * price;
-            }
-          });
+          if (paymentDate) {
+            records.forEach(({ Fecha, Produccion_Monocristalina_kWh, Precio_Luz_Euro_kWh }) => {
+              const d = new Date(Fecha);
+
+              if (d.getMonth() === paymentDate.getMonth() && targetYear === paymentDate.getFullYear()) {
+                const kwh = Number(Produccion_Monocristalina_kWh) || 0;
+                const price = Number(Precio_Luz_Euro_kWh) || 0;
+                monthKwh += kwh;
+                monthEuro += kwh * price;
+              }
+            });
+          }
           return {
             panelId: p._id || "",
             panelName: p.name,
-            fecha: fechaStr,
+            fecha: paymentDate ? paymentDate.toLocaleDateString() : "N/A",
             kwh: parseFloat(monthKwh.toFixed(2)),
             totalEnEuro: parseFloat(monthEuro.toFixed(2)),
           };
@@ -129,8 +141,10 @@ const InvestmentWallet: React.FC = () => {
         setLoadingProduction(false);
       }
     };
-    run();
-  }, [panels, userId])
+    if (invoices.length > 0) {
+      run();
+    }
+  }, [panels, userId, invoices])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -154,13 +168,13 @@ const InvestmentWallet: React.FC = () => {
 
 
   return (
-    <div className="solar-panel-section mt-4" style={{ position: "relative", padding: "20px" }}>
+    <div className="solar-panel-section position-relative">
       <div className="m-3" style={{ display: "flex", justifyContent: "end" }}>
-        <button className="btn btn-back" onClick={() => navigate("/investor-dash")} >
+        <button className="btn btn-back" onClick={() => navigate(-1)} >
           Back
         </button>
       </div>
-      
+
       <h2 className="mb-3" style={{ color: "var(--color-green-main)" }}>MY INVESTMENT WALLET</h2>
       <h3 className="section-title">Your Wallet Address:</h3>
       <div className="wallet-address col-12">
@@ -190,44 +204,8 @@ const InvestmentWallet: React.FC = () => {
           ))}
 
           <h3 className="section-title mt-4">Upcoming payments</h3>
-          {/* {upcomingPayment && upcomingPayment.length > 0 ? (
-            <table
-              border={1}
-              className="table-hl"
-              style={{ borderCollapse: "collapse", width: "100%", textAlign: "center" }}>
-              <thead className="admin-table-header">
-                <tr>
-                  <th>Bond Name</th>
-                  <th>Payment Date</th>
-                  <th>Payment Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {upcomingPayment?.map((bond, index) => (
-                  <tr key={index} className="admin-table-cell">
-                    <td>{bond.bondName}</td>
-                    <td>{bond.paymentDate}</td>
-                    <td>{bond.paymentAmount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>No upcoming payments available</p>
-          )}
-
-          <h3 className="section-title mt-4">Monthly Production (mock)</h3> */}
-          {loadingProduction ? (
-            <div className="d-flex justify-content-center" style={{ width: '100%' }}>
-              <div className="spinner-border text-primary" role="status" style={{ width: '2rem', height: '2rem' }}>
-                <span className="visually-hidden">Loading...</span>
-              </div>
-            </div>
-          ) : productionRows.length > 0 ? (
-            <table
-              border={1}
-              className="table-hl"
-              style={{ borderCollapse: "collapse", width: "100%", textAlign: "center" }}>
+          {productionRows.length > 0 ? (
+            <table border={1} className="table-hl" style={{ borderCollapse: "collapse", width: "100%", textAlign: "center" }}>
               <thead className="admin-table-header">
                 <tr>
                   <th>Panel</th>

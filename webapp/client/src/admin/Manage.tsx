@@ -8,7 +8,7 @@ const Manage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const panels = useAppSelector((state) => state.solarPanel.panels);
-  
+
   const [page, setPage] = useState<number>(1);
   const PAGE_SIZE = 10;
 
@@ -36,6 +36,11 @@ const Manage = () => {
     <div
       className="container-fluid d-flex justify-content-center"
       style={{ alignSelf: "flex-start", width: "100%", paddingTop: "2rem" }}>
+      <div className="d-flex justify-content-end w-100 position-absolute top-0 end-0 p-3" style={{ zIndex: 10 }}>
+        <button className="btn btn-back" onClick={() => navigate(-1)}>
+          Back
+        </button>
+      </div>
       <div className="solar-panel-section mt-3" style={{ maxWidth: '1350px', width: '80vw' }}>
         <h1 className="text-center mb-5 fw-bold">MANAGE MY PANELS</h1>
 
@@ -58,7 +63,7 @@ const Manage = () => {
           <tbody>
             {paginatedPanels.map((panel: SolarPanel, index: number) => (
               <tr key={index}>
-                <td className="p-3 fst-italic" onClick={() => navigate(`/panel-details`,  { state: { panelData: panel} })}>{panel.name}</td>
+                <td className="p-3 fst-italic" onClick={() => navigate(`/panel-details`, { state: { panelData: panel } })}>{panel.name}</td>
                 <td className="p-3">{panel.state}</td>
                 <td className="p-3 fst-italic">{panel.owner}</td>
               </tr>
@@ -88,14 +93,6 @@ const Manage = () => {
               </li>
             </ul>
           </nav>
-        </div>
-        <div className="container-md row m-3" style={{ display: "flex", justifyContent: "end", gap: "20px" }}>
-          <button
-            type="button"
-            className="btn btn-back col-sm-2"
-            onClick={() => navigate("/admin-dash")}>
-            Back 
-          </button>
         </div>
       </div>
     </div>

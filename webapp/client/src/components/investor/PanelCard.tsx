@@ -22,12 +22,12 @@ const PanelCard: React.FC<{ solarPanel: SolarPanel, user: Investor, canBuy?: boo
     return isNaN(date.getTime()) ? undefined : date.toLocaleDateString();
   };
   return (
-    <div className="panel-card" style={{ width: 'fit-content' }}>
+    <div className="panel-card">
       <div className="card-body pt-0">
-        <p className="card-title" style={{ color: "var(--color-green-accent)", marginBottom: "1rem" }}>
+        <p className="card-title" style={{ color: "var(--color-green-accent)", marginBottom: "1rem", textAlign: "center" }}>
           {solarPanel.name} - {solarPanel.reference}
         </p>
-        <ul className="text-start p-0">
+        <ul className="text-start p-0" style={{ paddingLeft: "0.5rem" }}>
           <li className="card-text" style={{ whiteSpace: "nowrap" }}>
             <strong>Location:</strong> {solarPanel.location}
           </li>
@@ -45,7 +45,7 @@ const PanelCard: React.FC<{ solarPanel: SolarPanel, user: Investor, canBuy?: boo
           </li>
         </ul>
 
-        <button className="btn btn-pay-now" disabled={!canBuy} onClick={() => navigate(`/purchase-details/${solarPanel._id}`, { state: { solarPanel, user } })}>
+        <button className="btn btn-pay-now d-block mx-auto" disabled={!canBuy} onClick={() => navigate(`/purchase-details/${solarPanel._id}`, { state: { solarPanel, user } })}>
           See More
         </button>
       </div>

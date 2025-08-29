@@ -32,7 +32,7 @@ const InvestorList: React.FC = () => {
 
   return (
     <div>
-      <h2 style={{ color: "var(--color-green-accent)", marginBottom: "1.6rem" }}>Investor List</h2>
+      <h2 className="section-title" style={{ marginBottom: "1.6rem" }}>Investor List</h2>
       <div className="solar-panel-section">
         <table className="table-hl">
           <thead>
@@ -94,11 +94,11 @@ const InvestorList: React.FC = () => {
           </div>
         )}
 
-        <button
-          className="btn btn-back mt-4 w-100"
-          onClick={() => navigate(-1)}>
-          Back
-        </button>
+        <div className="d-flex justify-content-end w-100 position-absolute top-0 end-0 p-3" style={{ zIndex: 10 }}>
+          <button className="btn btn-back" onClick={() => navigate(-1)}>
+            Back
+          </button>
+        </div>
       </div>
     </div>
   );

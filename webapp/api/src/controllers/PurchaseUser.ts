@@ -25,14 +25,16 @@ export const getAllPurchaseUsers = async (req: express.Request, res: express.Res
   }
 };
 
-// TODO: Revisar el envio del price del a la placa porque al precio que se asigna a la placa y el que aparece
-// en las trx no es el mismo.
+/**
+ * TODO: Revisar el envio del price del a la placa porque al precio que se asigna a la placa y el que aparece
+ * en las trx no es el mismo.
+ */
 export const purchase = async (req: express.Request, res: express.Response) => {
   try {
     console.log(req.body);
     const { userId, panelId } = req.body;
 
-    // Validate required fields
+    // Validacion de los parametros
     if (!userId || !panelId) {
       res.status(400).json({
         error: "Missing required fields",
@@ -41,8 +43,7 @@ export const purchase = async (req: express.Request, res: express.Response) => {
       return;
     }
 
-    // Find the solar panel by _id in the full collection
-    //  reference is _id in back and front because the data in reference is the panel _id
+    // Comprobar si el panel y usuario existen
     const panel = await getSolarPanelById(panelId);
     if (!panel) {
       res.status(404).json({
@@ -60,26 +61,18 @@ export const purchase = async (req: express.Request, res: express.Response) => {
       });
       return;
     }
-    let updatedPanel,trxStable, purchase, nftTransfer;
 
+    let updatedPanel, trxStable, purchase, nftTransfer;
     try {
       // TODO -- Revisar enviar bien el price -----
       console.log(parseFloat(panel.price.toString()))
       trxStable = await useApiBridge.requestStable(process.env.ADMIN_ACCOUNTS_PUBLIC_KEY, user.walletAddress, parseFloat(panel.price.toString()));
       if (trxStable) {
-        await handleTransactionSuccess(
-          userId,
-          REQUEST_STABLE,
-          trxStable
-        );
+        await handleTransactionSuccess(userId, REQUEST_STABLE, trxStable);
       }
     } catch (error) {
       console.log(error)
-      await handleTransactionError(
-        userId,
-        REQUEST_STABLE,
-        error
-      );
+      await handleTransactionError(userId, REQUEST_STABLE, error);
       res.status(400).json({
         error: "Error in requestStable",
         message: error instanceof Error ? error.message : "Unknow error in requestStable",
@@ -90,24 +83,16 @@ export const purchase = async (req: express.Request, res: express.Response) => {
 
     try {
       nftTransfer = await useBlockchainService().transferNFT(user.walletAddress, panel.NftId);
-      if(nftTransfer){
-        await handleTransactionSuccess(
-          userId,
-          NFT_TRANSFER,
-          nftTransfer
-      );
-    }
-      // Create the purchase record
+      if (nftTransfer) {
+        await handleTransactionSuccess(userId, NFT_TRANSFER, nftTransfer);
+      }
+      // Crear el registro de compra
       purchase = await createPurchaseUser({ userId: userId, reference: panelId });
 
-      // Update the owner of the solar panel using the reference as _id
+      // Actualiza el panel solar con el nuevo propietario
       updatedPanel = await updateSolarPanelById(panelId, { owner: userId });
     } catch (error) {
-      await handleTransactionError(
-        userId,
-        NFT_TRANSFER,
-        error
-      );
+      await handleTransactionError(userId, NFT_TRANSFER, error);
       res.status(400).json({
         error: "Error in nftTransfer",
         message: error instanceof Error ? error.message : "Unknow error in nftTransfer",
@@ -116,7 +101,8 @@ export const purchase = async (req: express.Request, res: express.Response) => {
       return;
     }
 
-    await createPaymentInvoice({ userId, panelId, payments: [{ paid: false }] })
+    // Crea el primer invoice, con el estado inicial de "no pagado"
+    await createPaymentInvoice({ userId, panelId, payments: [{ paid: false }] });
 
     res.status(201).json({
       message: "Purchase successful",
@@ -135,13 +121,12 @@ export const purchase = async (req: express.Request, res: express.Response) => {
   }
 };
 
-// TODO: Revisar si es necesario!!!!!!!!
 export const getTokenListAndUpcomingPaymentsByInvestor = async (req: express.Request, res: express.Response) => {
   try {
     const userId = req.params.userId;
     const invoices = await getPaymentInvoicesByUserId(userId);
 
-    // Compose a response that includes all invoices with panel info and payment details
+    // Devuelve los invoices del inversor 
     const panelInvoices = await Promise.all(
       invoices.map(async (inv) => {
         const panel = await getSolarPanelById(inv.panelId);
@@ -153,13 +138,12 @@ export const getTokenListAndUpcomingPaymentsByInvestor = async (req: express.Req
             timeStamp: p.timeStamp,
             paid: p.paid,
             trxPaid: p.trxPaid ?? null,
-            amount: p.amount ? parseFloat(String(p.amount)) : 0,
+            amount: p.amount ? parseFloat(String(p.amount)) : 0, // Convertir a number si existe porque puede venir como Decimal128
           })),
         };
       })
     );
 
-    // Maintain existing keys for compatibility
     res.status(200).json({ tokenList: [], upcomingPayment: [], invoices: panelInvoices });
   } catch (error) {
     console.error(error);
@@ -245,7 +229,7 @@ export const updatePayment = async (req: express.Request, res: express.Response)
   }
 
   try {
-    // 1) Localizar la invoice y el payment pendiente (paid === false)
+    // Localiza el invoice y el payment pendiente (paid === false)
     const invoice: any = await getPaymentInvoiceByData(userId, panelId);
     if (!invoice) {
       res.status(404).json({ error: "Payment invoice no encontrada para el usuario/panel dados" });
@@ -259,7 +243,7 @@ export const updatePayment = async (req: express.Request, res: express.Response)
       return;
     }
 
-    // Preferimos el pago vencido (<= hoy). Si no, el primero pendiente por fecha
+    // Busca el pago vencido (<= hoy). Si no, el primero pendiente por fecha. (Puede ser una comprobacion innecesaria si los pagos siempre se crean en orden)
     unpaidPayments.sort((a: any, b: any) => new Date(a.timeStamp).getTime() - new Date(b.timeStamp).getTime());
     const targetPayment = unpaidPayments.find((p: any) => new Date(p.timeStamp).getTime() <= now.getTime()) || unpaidPayments[0];
     const targetTimestamp: Date = new Date(targetPayment.timeStamp);
@@ -275,8 +259,8 @@ export const updatePayment = async (req: express.Request, res: express.Response)
       }
     );
 
-    // 3) Crear el siguiente registro: último día del mes posterior al del pago actualizado (a las 12:00)
-    const nextPaymentDate = new Date(targetTimestamp.getFullYear(), targetTimestamp.getMonth() + 2, 0, 12);
+    // Crear el siguiente registro: último día del mes posterior al del pago actualizado (a las 12:00)
+    const nextPaymentDate = new Date(targetTimestamp.getFullYear(), targetTimestamp.getMonth() + 1, 0, 12);
     const updatedInvoice = await addPaymentToInvoice(invoice._id.toString(), {
       timeStamp: nextPaymentDate,
       paid: false,

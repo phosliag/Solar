@@ -44,6 +44,7 @@ export const getRetailMarketItem = async (req: express.Request, res: express.Res
 export const addRetailMarketItem = async (req: express.Request, res: express.Response) => {
   try {
     const { reference, location, owner } = req.body;
+    // Validar campos requeridos
     if (!reference || !location) {
       res.status(400).json({
         error: 'Missing fields',
@@ -51,6 +52,7 @@ export const addRetailMarketItem = async (req: express.Request, res: express.Res
       });
       return;
     }
+    // Crear el item en el retail market
     const item = await createRetailMarket({ reference, location, owner }).catch((error: MongoServerError) => {
       if (error.code === 11000) {
         res.status(400).json({
@@ -60,34 +62,30 @@ export const addRetailMarketItem = async (req: express.Request, res: express.Res
         return;
       }
     });
+    // Obtener el panel solar asociado a la referencia
     const panel = await getSolarPanelsByReference(reference);
     if (!panel) {
       res.status(404).json({ error: 'Not found', message: 'Panel not found' });
       return;
     }
-    try {
 
+    try {
       let blockchainCreation;
       console.log('panel', JSON.stringify(panel));
       try {
+        // Crear el NFT en la blockchain
         blockchainCreation = await useBlockchainService().createNFTPanel(JSON.stringify(panel));
 
-        await handleTransactionSuccess(
-          panel._id.toString(),
-          CREATE,
-          blockchainCreation.nft[0]
-        );
+        await handleTransactionSuccess(panel._id.toString(), CREATE, blockchainCreation.nft[0]);
       } catch (error) {
-        await handleTransactionError(
-          panel._id.toString(),
-          CREATE,
-          error
-        );
+        await handleTransactionError(panel._id.toString(), CREATE, error);
       }
 
+      // Actualizar el panel solar con el ID del NFT creado
       await updateSolarPanelById(panel._id.toString(), { NftId: blockchainCreation.nft[0].nftId });
 
     } catch (error) {
+      // Manejar errores de creación, incluyendo limpieza si es necesario
       if (item && item._id) {
         await deleteRetailMarketById(item._id.toString());
       }

@@ -4,14 +4,6 @@ import { useAppDispatch } from "../app/hooks";
 import { faucetStable, updateInvestor } from "../features/userSlice";
 import { Investor } from "../components/Authentication/InvestorRegistration";
 
-// Antes del return, define el estilo
-const boxStyle: React.CSSProperties = {
-  border: '2px solid #cce0cc',
-  borderRadius: '10px',
-  padding: '15px',
-  marginBottom: '20px',
-  backgroundColor: 'rgba(255,255,255,0.6)'
-};
 
 const InvestorDetails: React.FC = () => {
   const location = useLocation() as { state: { investor: Investor; admin?: boolean } };
@@ -21,17 +13,24 @@ const InvestorDetails: React.FC = () => {
   const adminLogged = location.state.admin
   const [investor, setInvestor] = useState<Investor>(location.state?.investor);
 
+  // Estados para el faucet
   const [faucetAmount, setFaucetAmount] = useState<number>(0);
   const [faucetLoading, setFaucetLoading] = useState(false);
   const [faucetMessage, setFaucetMessage] = useState<string | null>(null);
+
   // Estado para mostrar ocultar el modal
   const [editModalOpen, setEditModalOpen] = useState(false);
+
   // Estado para documentos
   const [docFiles, setDocFiles] = useState<{ frontID?: File; backID?: File; residenceProof?: File }>({});
   const [docUploading, setDocUploading] = useState(false);
   const [docMessage, setDocMessage] = useState<string | null>(null);
   const [showDocValidation, setShowDocValidation] = useState(false);
 
+  // Image previews
+  const [previewFrontID, setPreviewFrontID] = useState<string | null>(null);
+  const [previewBackID, setPreviewBackID] = useState<string | null>(null);
+  const [previewResidenceProof, setPreviewResidenceProof] = useState<string | null>(null);
   if (!investor) {
     return (
       <div className="container mt-4" style={{ color: 'var(--color-green-accent)' }}>
@@ -40,6 +39,7 @@ const InvestorDetails: React.FC = () => {
     );
   }
 
+  // Faucet handling to add stablecoin
   const handleFaucet = async () => {
     setFaucetLoading(true);
     setFaucetMessage(null);
@@ -51,6 +51,7 @@ const InvestorDetails: React.FC = () => {
         setFaucetMessage("Faucet failed.");
       }
     } catch (e) {
+      console.error(e);
       setFaucetMessage("Faucet failed.");
     } finally {
       setFaucetLoading(false);
@@ -60,15 +61,16 @@ const InvestorDetails: React.FC = () => {
   const handleEdit = () => {
     setEditModalOpen(true);
   };
+  // Manejo de la edicion de datos del inversor
   const handleSaveEdit = (updated: Partial<Investor>) => {
     // Actualiza los datos locales (puedes añadir lógica para guardarlo en backend)
     const updatedInv = { ...investor, ...updated };
     setInvestor(updatedInv);
     dispatch(updateInvestor(updated))
     setEditModalOpen(false);
-    // Aquí puedes hacer dispatch a Redux o llamar a la API según tu arquitectura
   };
 
+  // Manejo de la actualizacion de las imagenes
   async function handleUpdateDoc() {
     setDocMessage(null);
     if (!investor?._id) {
@@ -88,7 +90,7 @@ const InvestorDetails: React.FC = () => {
           ...(docFiles.backID ? { backID: docFiles.backID } : {}),
           ...(docFiles.residenceProof ? { residenceProof: docFiles.residenceProof } : {}),
         }
-      } as Partial<Investor>) as any);
+      } as Partial<Investor>));
       if (response?.payload) {
         setDocMessage("Documents updated successfully");
         setInvestor(response.payload as Investor);
@@ -97,16 +99,12 @@ const InvestorDetails: React.FC = () => {
         setDocMessage("Failed to update documents");
       }
     } catch (e) {
+      console.error(e);
       setDocMessage("Failed to update documents");
     } finally {
       setDocUploading(false);
     }
   }
-
-  // Codigo para el preview de las imagenes seleccionadas
-  const [previewFrontID, setPreviewFrontID] = useState<string | null>(null);
-  const [previewBackID, setPreviewBackID] = useState<string | null>(null);
-  const [previewResidenceProof, setPreviewResidenceProof] = useState<string | null>(null);
 
   return (
     <div className="container d-flex justify-content-center">
@@ -139,29 +137,29 @@ const InvestorDetails: React.FC = () => {
           }
         `}
       </style>
-      <div className="solar-panel-section mt-3 p-4" style={{ position: 'relative' }}>
-        {/* Edit button top right */}
-        <button
-          className="btn btn-pay-now position-absolute"
-          style={{ top: 20, right: 20, zIndex: 2, padding: '0.5em 1em' }}
-          onClick={handleEdit}
-          title="Edit investor"
-        >
-          <span role="img" aria-label="edit">✏️</span> Edit
+      <div className="d-flex justify-content-end w-100 position-absolute top-0 end-0 p-3" style={{ zIndex: 10 }}>
+        <button className="btn btn-back" onClick={() => navigate(-1)}>
+          Back
         </button>
-        {editModalOpen &&
-          <ModalEditInvestor
-            investor={investor}
-            onSave={handleSaveEdit}
-            onClose={() => setEditModalOpen(false)}
-          />
-        }
+      </div>
+      <div className="solar-panel-section mt-3 p-4" style={{ position: 'relative' }}>
+
 
         <h2 className="mb-4 text-center">Investor Details</h2>
 
         {/* Personal Identity */}
-        <div className="mb-3" style={boxStyle}>
+        <div className="mb-3 card position-relative">
           <h4 className="mb-2">Personal Identity</h4>
+          {/* Edit button top right */}
+          <button
+            className="btn btn-pay-now position-absolute"
+            style={{ top: 20, right: 20, zIndex: 2, padding: '0.5em 1em' }}
+            onClick={handleEdit}
+            title="Edit investor"
+          >
+            <span role="img" aria-label="edit">✏️</span> Edit
+          </button>
+          {editModalOpen && <ModalEditInvestor investor={investor} onSave={handleSaveEdit} onClose={() => setEditModalOpen(false)} />}
           <ul className="list-unstyled" style={{ textAlign: 'left', marginLeft: '35px' }}>
             <li>
               <strong>First Name:</strong> <em>{investor.name || "--"}</em>
@@ -179,7 +177,7 @@ const InvestorDetails: React.FC = () => {
         </div>
 
         {/* Contact */}
-        <div className="mb-3" style={boxStyle}>
+        <div className="mb-3 card">
           <h4 className="mb-2">Contact</h4>
           <ul className="list-unstyled" style={{ textAlign: 'left', marginLeft: '35px' }}>
             <li>
@@ -189,11 +187,11 @@ const InvestorDetails: React.FC = () => {
         </div>
 
         {adminLogged && (
-          <div className="mb-3" style={boxStyle}>
-            <div className="d-flex justify-content-between align-items-center">
+          <div className="mb-3 card">
+            <div className="d-flex align-items-center w-100">
               <h4 className="mb-0">Document Validation</h4>
               <button
-                className="btn btn-pay-now"
+                className="btn btn-pay-now ms-auto"
                 onClick={() => setShowDocValidation(v => !v)}
                 type="button"
               >{showDocValidation ? 'Hide' : 'Review documents'}</button>
@@ -203,10 +201,10 @@ const InvestorDetails: React.FC = () => {
                 <div className="row g-3">
                   <div className="col-md-4">
                     <label className="form-label">Front ID</label>
-                    {typeof (investor as any)?.authImages?.frontID === 'string' ? (
-                      <a href={(investor as any).authImages.frontID as string} target="_blank" rel="noreferrer">
+                    {typeof (investor)?.authImages?.frontID === 'string' ? (
+                      <a href={(investor).authImages.frontID as string} target="_blank" rel="noreferrer">
                         <img
-                          src={(investor as any).authImages.frontID as string}
+                          src={(investor).authImages.frontID as string}
                           alt="Front ID"
                           style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 8, border: '1px solid #ddd' }}
                         />
@@ -217,10 +215,10 @@ const InvestorDetails: React.FC = () => {
                   </div>
                   <div className="col-md-4">
                     <label className="form-label">Back ID</label>
-                    {typeof (investor as any)?.authImages?.backID === 'string' ? (
-                      <a href={(investor as any).authImages.backID as string} target="_blank" rel="noreferrer">
+                    {typeof (investor)?.authImages?.backID === 'string' ? (
+                      <a href={(investor).authImages.backID as string} target="_blank" rel="noreferrer">
                         <img
-                          src={(investor as any).authImages.backID as string}
+                          src={(investor).authImages.backID as string}
                           alt="Back ID"
                           style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 8, border: '1px solid #ddd' }}
                         />
@@ -231,10 +229,10 @@ const InvestorDetails: React.FC = () => {
                   </div>
                   <div className="col-md-4">
                     <label className="form-label">Proof of Residence</label>
-                    {typeof (investor as any)?.authImages?.residenceProof === 'string' ? (
-                      <a href={(investor as any).authImages.residenceProof as string} target="_blank" rel="noreferrer">
+                    {typeof (investor)?.authImages?.residenceProof === 'string' ? (
+                      <a href={(investor).authImages.residenceProof as string} target="_blank" rel="noreferrer">
                         <img
-                          src={(investor as any).authImages.residenceProof as string}
+                          src={(investor).authImages.residenceProof as string}
                           alt="Residence Proof"
                           style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 8, border: '1px solid #ddd' }}
                         />
@@ -249,8 +247,8 @@ const InvestorDetails: React.FC = () => {
                     id="docValidated"
                     className="form-check-input"
                     type="checkbox"
-                    checked={Boolean((investor as any)?.authImages?.validated)}
-                    onChange={(e) => setInvestor({ ...investor, authImages: { ...(investor as any).authImages, validated: e.target.checked } as any })}
+                    checked={Boolean((investor)?.authImages?.validated)}
+                    onChange={(e) => setInvestor({ ...investor, authImages: { ...(investor)?.authImages, validated: e.target.checked } })}
                   />
                   <label className="form-check-label" htmlFor="docValidated">
                     Documents validated
@@ -260,8 +258,8 @@ const InvestorDetails: React.FC = () => {
                   className="btn btn-pay-now mt-3"
                   onClick={async () => {
                     if (!investor?._id) return;
-                    const res = await dispatch(updateInvestor({ _id: investor._id, authImages: { validated: Boolean((investor as any)?.authImages?.validated) } } as any));
-                    if ((res as any)?.payload) setInvestor((res as any).payload as Investor);
+                    const res = await dispatch(updateInvestor({ _id: investor._id, authImages: { validated: Boolean((investor)?.authImages?.validated) } }));
+                    if ((res)?.payload) setInvestor((res).payload as Investor);
                   }}
                   type="button"
                 >Save Validation</button>
@@ -271,7 +269,7 @@ const InvestorDetails: React.FC = () => {
         )}
 
         {/* Blockchain & Others */}
-        <div className="mb-3" style={boxStyle}>
+        <div className="mb-3 card">
           <h4 className="mb-2">Blockchain & Others</h4>
           <ul className="list-unstyled" style={{ textAlign: 'left', marginLeft: '35px' }}>
             <li>
@@ -284,25 +282,15 @@ const InvestorDetails: React.FC = () => {
 
         </div>
         {adminLogged &&
-          <div className="row align-items-end g-2 mt-2" style={boxStyle}>
-            <div className="col-auto">
-              <label htmlFor="faucetAmount" className="form-label mb-0">Faucet Amount</label>
-              <input
-                id="faucetAmount"
-                type="number"
-                className="form-control"
-                min={1}
-                value={faucetAmount}
-                onChange={e => setFaucetAmount(Number(e.target.value))}
-                style={{ width: 120 }}
-              />
-            </div>
-            <div className="col-auto">
-              <button
-                className="btn btn-pay-now"
-                onClick={handleFaucet}
-                disabled={faucetLoading || !faucetAmount || faucetAmount <= 0}
-                type="button">
+          <div className="row g-2 mt-2 card">
+            <div className="col-12 d-flex align-items-center g-2">
+              <label htmlFor="faucetAmount" className="form-label mb-0 me-2" style={{ whiteSpace: 'nowrap' }}>
+                Faucet Amount
+              </label>
+              <input id="faucetAmount" type="number" className="form-control me-2" min={1}
+                value={faucetAmount} onChange={e => setFaucetAmount(Number(e.target.value))} style={{ width: 150 }} />
+              <button className="btn btn-pay-now" onClick={handleFaucet}
+                disabled={faucetLoading || !faucetAmount || faucetAmount <= 0} type="button">
                 {faucetLoading ? "Sending..." : "Send Faucet"}
               </button>
             </div>
@@ -315,7 +303,7 @@ const InvestorDetails: React.FC = () => {
         }
 
         {!adminLogged &&
-          <div style={boxStyle}>
+          <div className="card">
             <h4 className="mb-3">Documents</h4>
             {/* <div className="row g-3">
               <div className="col-md-4">
@@ -361,11 +349,11 @@ const InvestorDetails: React.FC = () => {
             <div className="row g-3">
               {/* Front ID */}
               <div className="col-md-4 image-update">
-                <label className="form-label">Front ID</label><br/>
+                <label className="form-label">Front ID</label><br />
                 <label htmlFor="front-id-upload" className="upload-label">
                   <img className="upload-preview"
                     src={previewFrontID || "/images/icons8-add-image-96.png"}
-                    alt="Front ID"/>
+                    alt="Front ID" />
                 </label>
                 <input id="front-id-upload"
                   type="file"
@@ -383,7 +371,7 @@ const InvestorDetails: React.FC = () => {
 
               {/* Back ID */}
               <div className="col-md-4 image-update">
-                <label className="form-label">Back ID</label><br/>
+                <label className="form-label">Back ID</label><br />
                 <label htmlFor="back-id-upload" className="upload-label">
                   <img className="upload-preview"
                     src={previewBackID || "/images/icons8-add-image-96.png"}
@@ -405,11 +393,11 @@ const InvestorDetails: React.FC = () => {
 
               {/* Proof of Residence */}
               <div className="col-md-4 image-update">
-                <label className="form-label">Proof of Residence</label><br/>
+                <label className="form-label">Proof of Residence</label><br />
                 <label htmlFor="residence-proof-upload" className="upload-label">
                   <img className="upload-preview"
                     src={previewResidenceProof || "/images/icons8-add-image-96.png"}
-                    alt="Proof of Residence"/>
+                    alt="Proof of Residence" />
                 </label>
                 <input id="residence-proof-upload"
                   type="file"
@@ -440,12 +428,6 @@ const InvestorDetails: React.FC = () => {
             )}
           </div>
         }
-
-        <button
-          className="btn btn-back mt-4 w-100"
-          onClick={() => navigate(-1)}>
-          Back
-        </button>
       </div>
     </div >
   );

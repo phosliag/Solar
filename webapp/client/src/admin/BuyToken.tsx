@@ -17,7 +17,6 @@ const BuyToken = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const registeredPanels = useAppSelector((state) => state.solarPanel.panels);
-  const retailPanels = useAppSelector((state) => state.solarPanel.retailMarketPanels);
   const investors = useAppSelector((state) => state.user.investors);
 
   const [showPopupUser, setShowPopupUser] = useState(false); // State to toggle popup visibility
@@ -167,9 +166,9 @@ const BuyToken = () => {
             <button
               type="button"
               className="btn btn-back col-sm-2"
-              onClick={() => navigate("/manage-bonds")}
+              onClick={() => navigate(-1)}
             >
-              Cancel
+              Back
             </button>
           </div>
         </form>

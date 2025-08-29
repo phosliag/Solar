@@ -66,8 +66,15 @@ const MyPanels = () => {
   const user = useAppSelector((state) => state.user.userLoged);
   const allPanels = useAppSelector((state) => state.solarPanel.panels) || [];
   const navigate = useNavigate();
+
   const [recordsByYear, setRecordsByYear] = useState<Record<string, ProductionRecord[]>>({});
-  // sin toggle aquí; la gráfica se muestra siempre
+  const [loadedYears, setLoadedYears] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/user-access');
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     document.title = "My Panels";
@@ -76,38 +83,42 @@ const MyPanels = () => {
 
   // Filtrar paneles cuyo owner sea igual al _id del usuario logueado
   const panels = user && user._id ? allPanels.filter((panel: any) => panel.owner === user._id) : [];
-  console.log(panels)
 
   // Cargar CSVs necesarios según los años de instalación de los paneles del usuario
   useEffect(() => {
     const run = async () => {
       if (!panels || panels.length === 0) {
         setRecordsByYear({});
+        setLoadedYears(new Set());
         return;
       }
-      // no-op
       try {
         const years = Array.from(
           new Set(
             panels.map((p: any) => (p.installationYear ?? Number(String(p.name).slice(0, 4)) ?? new Date().getFullYear())).map(String)
           )
         );
+        const yearsToLoad = years.filter(y => !loadedYears.has(y));
+        if (yearsToLoad.length === 0) return; // No hay años nuevos que cargar
+
         const fetched = await Promise.all(
-          years.map(async (y) => {
+          yearsToLoad.map(async (y) => {
             const recs = await fetchAndParseCsv(getCsvUrlForYear(y));
             return [y, recs] as [string, ProductionRecord[]];
           })
         );
-        setRecordsByYear(Object.fromEntries(fetched));
+        setRecordsByYear(prev => ({ ...prev, ...Object.fromEntries(fetched) }));
+        setLoadedYears(prev => {
+          const next = new Set(prev);
+          yearsToLoad.forEach(y => next.add(y));
+          return next;
+        });
       } catch (e: any) {
         console.error("Error cargando producción:", e);
-        setRecordsByYear({});
-      } finally {
-        // no-op
       }
     };
     run();
-  }, [panels]);
+  }, [panels]); // <--- Solo se ejecuta cuando cambian los paneles
 
   const panelIdToSeries = useMemo(() => {
     const map: Record<string, { data: { date: string; total: number }[]; avg: number | null }> = {};
@@ -120,53 +131,52 @@ const MyPanels = () => {
   }, [panels, recordsByYear]);
 
   return (
-    <div className="container mt-3">
-      <div className="solar-panel-section mt-3 p-4">
-        <div className="position-absolute top-0 end-0 m-3">
-          <button className="btn btn-back" onClick={() => navigate(-1)}>Back</button>
-        </div>
-        <h2 className="mb-4">My Panels & Production</h2>
-        {panels.length === 0 ? (
-          <div>No tienes placas compradas.</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', overflowX: 'hidden', paddingBottom: '1rem' }}>
-            {panels.map((panel: any) => {
-              const series = panelIdToSeries[panel._id] || { data: [], avg: null };
-              return (
-                <div key={panel._id} className="mb-5" style={{ minWidth: 500, width: "100%", flex: '0 0 auto' }}>
-                  <div className="card p-3" style={{ borderRadius: 8 }}>
-                    <div className="d-flex justify-content-between align-items-center">
-                      <h4 className="mb-0" onClick={() => navigate(`/panel-details`,  { state: { panelData: panel} })}>{panel.name || panel.reference || panel._id} - {panel.reference}</h4>
-                    </div>
-                    <div className="mt-3">
-                      {series.avg !== null && series.data.length > 0 ? (
-                        <>
-                          <div className="mb-2"><strong>Media diaria:</strong> <em>{series.avg.toFixed(2)} kWh</em></div>
-                          <div style={{ width: "100%", height: 250 }}>
-                            <ResponsiveContainer width="100%" height={250}>
-                              <BarChart data={series.data} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                                <YAxis />
-                                <Tooltip formatter={(value) => `${value} kWh`} />
-                                <Bar dataKey="total" fill="#82ca9d" name="Producción diaria (kWh)" />
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </>
-                      ) : (
-                        <div>No hay datos de producción para esta placa.</div>
-                      )}
-                    </div>
+    <div className="solar-panel-section mt-3 p-4">
+      <div className="position-absolute top-0 end-0 m-3">
+        <button className="btn btn-back" onClick={() => navigate(-1)}>Back</button>
+      </div>
+      <h2 className="mb-4">My Panels & Production</h2>
+      {panels.length === 0 ? (
+        <div>No tienes placas compradas.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', overflowX: 'hidden', paddingBottom: '1rem' }}>
+          {panels.map((panel: any) => {
+            const series = panelIdToSeries[panel._id] || { data: [], avg: null };
+            return (
+              <div key={panel._id} className="mb-3" style={{ width: "100%", flex: '0 0 auto' }}>
+                <div className="card p-3" style={{ borderRadius: 8, minHeight: 320, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div className="d-flex justify-content-between align-items-center gap-2" onClick={() => navigate(`/panel-details`, { state: { panelData: panel } })}>
+                    <h4 className="mb-0" >{panel.name || panel.reference || panel._id} - {panel.reference}</h4>
+                    <span style={{ textDecoration: 'underline', color: 'var(--color-text)', cursor: 'pointer' }}>View details</span>
+                  </div>
+                  <div className="mt-3 w-100">
+                    {series.avg !== null && series.data.length > 0 ? (
+                      <>
+                        <div className="mb-2 w-100"><strong>Daily average:</strong> <em>{series.avg.toFixed(2)} kWh</em></div>
+                        <div className="chart-container">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={series.data} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                              <YAxis />
+                              <Tooltip formatter={(value) => `${value} kWh`} />
+                              <Bar dataKey="total" fill="#82ca9d" name="Producción diaria (kWh)" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </>
+                    ) : (
+                      <div>No hay datos de producción para esta placa.</div>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
 
-export default MyPanels; 
+export default MyPanels;

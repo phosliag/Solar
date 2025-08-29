@@ -37,13 +37,6 @@ const AvailablePanels = ({ panels, user }: AvailablePanelsProps) => {
     return (panel?.location);
   };
 
-  // Country derived from location no longer used as separate filter
-
-  // Region removed; not present in panel data
-
-  // Removed unused capacity helper
-
-  // Derive global ranges and options from available panels
   const availablePanels = useMemo(() => (panels || []).filter((p) => !p?.owner), [panels]);
 
   const priceRange = useMemo(() => {
@@ -53,6 +46,11 @@ const AvailablePanels = ({ panels, user }: AvailablePanelsProps) => {
     if (prices.length === 0) return { min: 0, max: 0 };
     return { min: Math.min(...prices), max: Math.max(...prices) };
   }, [availablePanels]);
+
+  useEffect(() => {
+    setMinPrice(priceRange.min);
+    setMaxPrice(priceRange.max);
+  }, [priceRange.min, priceRange.max]);
 
   const yearOptions = useMemo(() => {
     const years = Array.from(
@@ -76,10 +74,6 @@ const AvailablePanels = ({ panels, user }: AvailablePanelsProps) => {
     ).sort((a, b) => a.localeCompare(b));
     return locs;
   }, [availablePanels]);
-
-  // Country options removed
-
-  // Region options removed
 
   // Initialize price sliders when data changes
   useEffect(() => {
@@ -112,9 +106,6 @@ const AvailablePanels = ({ panels, user }: AvailablePanelsProps) => {
         if (!loc || !String(loc).toLowerCase().includes(location.trim().toLowerCase())) return false;
       }
 
-      // Country filter removed
-      // Region filter removed
-
       return true;
     });
   }, [availablePanels, minPrice, maxPrice, year, location]);
@@ -136,7 +127,7 @@ const AvailablePanels = ({ panels, user }: AvailablePanelsProps) => {
   return (
     <>
       <div className="card p-3 mb-3 w-100" style={{ backgroundColor: "var(--color-bg)", border: "1px solid var(--color-green-main)" }}>
-        <div className="d-flex flex-wrap align-items-end gap-4">
+        <div className="d-flex flex-wrap align-items-start gap-4">
           <div style={{ minWidth: "300px" }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <span className="fw-semibold" style={{ color: "var(--color-green-main)" }}>Price range</span>
@@ -146,10 +137,11 @@ const AvailablePanels = ({ panels, user }: AvailablePanelsProps) => {
             </div>
             <div className="px-2">
               <Slider
+                range
                 min={priceRange.min}
                 max={priceRange.max}
                 step={1}
-                value={[minPrice ?? priceRange.min, maxPrice ?? priceRange.max]}
+                value={[minPrice, maxPrice]}
                 allowCross={false}
                 onChange={(vals: number[] | number) => {
                   const [minV, maxV] = Array.isArray(vals) ? vals : [priceRange.min, priceRange.max];
@@ -160,7 +152,7 @@ const AvailablePanels = ({ panels, user }: AvailablePanelsProps) => {
             </div>
           </div>
 
-          <div style={{ minWidth: "220px" }}>
+          <div style={{ minWidth: "150px" }}>
             <label className="fw-semibold mb-2" style={{ color: "var(--color-green-main)" }}>Location</label>
             <select
               className="form-select select-themed"
@@ -176,41 +168,43 @@ const AvailablePanels = ({ panels, user }: AvailablePanelsProps) => {
 
           <div style={{ minWidth: "260px" }}>
             <label className="fw-semibold mb-2" style={{ color: "var(--color-green-main)" }}>Year</label>
-            <div className="d-flex flex-wrap gap-2">
-              <div className="form-check me-3">
-                <input
-                  className="form-check-input"
-                  type="radio"
-                  name="yearFilter"
-                  id="year-all"
-                  checked={year === undefined}
-                  onChange={() => setYear(undefined)}
-                />
-                <label className="form-check-label" htmlFor="year-all">
-                  All
-                </label>
-              </div>
-              {yearOptions.map((y) => (
-                <div key={y} className="form-check me-3">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="yearFilter"
-                    id={`year-${y}`}
-                    checked={year === y}
-                    onChange={() => setYear(y)}
-                  />
-                  <label className="form-check-label" htmlFor={`year-${y}`}>
-                    {y}
-                  </label>
-                </div>
-              ))}
+            <div className="d-flex flex-column gap-2">
+              {(() => {
+                // Agrupa los años en filas de 3, la primera fila incluye "Todos"
+                const radios = [
+                  { label: "All", value: undefined, id: "year-all" },
+                  ...yearOptions.map((y) => ({ label: y, value: y, id: `year-${y}` }))
+                ];
+                const rows = [];
+                for (let i = 0; i < radios.length; i += 4) {
+                  rows.push(radios.slice(i, i + 4));
+                }
+                return rows.map((row, idx) => (
+                  <div key={idx} className="d-flex flex-wrap gap-2">
+                    {row.map((radio) => (
+                      <div key={radio.id} className="form-check me-3">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="yearFilter"
+                          id={radio.id}
+                          checked={year === radio.value}
+                          onChange={() => setYear(radio.value)}
+                        />
+                        <label className="form-check-label" htmlFor={radio.id}>
+                          {radio.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                ));
+              })()}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="row row-cols-1 row-cols-md-3 g-3 w-100">
+      <div className="row row-cols-1 row-cols-md-3 g-3 w-100 mt-2">
         {paginatedPanels.length > 0 ? (
           paginatedPanels.map((panel) => (
             <div key={panel._id} className="col mb-3">

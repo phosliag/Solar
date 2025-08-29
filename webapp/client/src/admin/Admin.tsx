@@ -1,46 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAppDispatch } from "../app/hooks";
-import { Form, Button } from 'react-bootstrap';
-import { faucetStable } from "../features/userSlice";
+import { Button } from 'react-bootstrap';
 import { useNavigate } from "react-router-dom";
 
 const Admin = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [address, setAddress] = useState<string>("");
-  const [amount, setAmount] = useState<number>(0);
 
   useEffect(() => {
     document.title = "Admin - Solar Panels";
   }, [dispatch]);
 
-  const handleFaucet = async () => {
-    console.log("doFaucet");
-    const response = await dispatch(faucetStable({ address: address, amount: amount }));
-    if (response.payload) {
-      console.log("Faucet exitoso");
-    } else {
-      console.log("Faucet fallido");
-    }
-  }
-
-
   return (
     <div className="p-4" style={{ maxWidth: '100%' }}>
 
-      <div className="col-12 col-md-6 position-absolute top-0 end-0 p-3">
+      <div className="d-flex justify-content-end w-100 position-absolute top-0 end-0 p-3" style={{ zIndex: 10 }}>
         <Button className="btn btn-back" onClick={() => navigate("/")}>Log out</Button>
       </div>
 
-      <div className="solar-panel-section" style={{ width: 750}}>
-        <h1 className="mb-4 p-4" style={{ color: 'var(--color-green-main)' }}>Admin Dashboard</h1>
+      <div className="solar-panel-section">
+        <h1 className="mb-4 p-4" style={{ color: 'var(--color-green-main)', textAlign: 'center' }}>Admin Dashboard</h1>
 
         <div className="container-md d-flex flex-column align-items-center mb-4">
           <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/form")}>TOKENIZED SOLAR PANEL CREATION</button>
           <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/manage-bonds")}>MANAGE PANELS</button>
           <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/management-menu")}>WALLET</button>
           <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/payment-management")}>PAYMENT MANAGEMENT</button>
-          <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/transactions")}>TRANXACTIONS DETAILS</button>
+          <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/transactions")}>TRANSACTIONS DETAILS</button>
           <button className="btn btn-pay-now mb-2 p-3 col-9" onClick={() => navigate("/user-list")}>REGISTERED INVESTORS</button>
         </div>
 

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { newPanel } from "../features/solarPanelSlice";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Papa from "papaparse";
 
 const PanelCreationForm = () => {
   // const dispatch = useAppDispatch();
@@ -33,12 +34,12 @@ const PanelCreationForm = () => {
   const [transactionMessages, setTransactionMessages] = useState<{ createCompanyBond?: string; mintBond?: string }>({}); // State for transaction messages
   const [loading, setLoading] = useState(false); // State for loading indicator
   const dispatch = useAppDispatch();
+  const [yearlyProductionArr, setYearlyProductionArr] = useState<{ year: number, avgProduction: number }[]>([]);
 
   const handleConfirmSubmit = async () => {
     try {
       setLoading(true); // Set loading to true when starting the process
       console.log("Form data submitted:", formData);
-      //TODO: cambiar el newBond por el newSolarPanel
       const response = await dispatch(newPanel(formData)).unwrap(); // Dispatch the data and capture the response
       toast.success("Panel created successfully!");
       setLoading(false); // Reset loading state
@@ -49,16 +50,6 @@ const PanelCreationForm = () => {
     } finally {
       setShowPopup(false); // Close the popup
       // navigate('/')
-    }
-  };
-
-  const handleSaveBond = async () => {
-    try {
-      console.log("Form data submitted:", formData);
-      await dispatch(newPanel(formData)).unwrap(); // Dispatch the data
-      toast.success("Draft created successfully!");
-    } catch (error) {
-      toast.error(`Failed to save draft.\n Erorr: ${error}`);
     }
   };
 
@@ -97,6 +88,47 @@ const PanelCreationForm = () => {
     }
   }, [errorMessage]);
 
+  // Leer los CSV al montar el componente
+  useEffect(() => {
+    const fetchCSVFiles = async () => {
+      const currentYear = new Date().getFullYear();
+      const arr: { year: number, avgProduction: number }[] = [];
+
+      for (let year = 2020; year <= currentYear; year++) {
+        try {
+          const response = await fetch(`/mockPlacas/produccion_placas_luz_${year}.csv`);
+          if (!response.ok) continue;
+          const csvText = await response.text();
+          const parsed = Papa.parse(csvText, { header: true });
+          const productions = parsed.data
+            .map((row: any) => Number(row["Produccion_Monocristalina_kWh"]))
+            .filter((val: number) => !isNaN(val));
+          if (productions.length > 0) {
+            const avg = productions.reduce((a, b) => a + b, 0) / productions.length;
+            arr.push({ year, avgProduction: Math.round(avg * 100) / 100 });
+          }
+        } catch (err) {
+          // Ignora si el CSV no existe o hay error
+        }
+      }
+      setYearlyProductionArr(arr);
+    };
+    fetchCSVFiles();
+  }, []);
+
+  // Cuando cambia el año de instalación, actualiza la producción estimada
+  useEffect(() => {
+    if (formData.installationYear) {
+      const found = yearlyProductionArr.find(e => e.year === Number(formData.installationYear));
+      if (found) {
+        setFormData(prev => ({
+          ...prev,
+          stimatedProduction: found.avgProduction,
+        }));
+      }
+    }
+  }, [formData.installationYear, yearlyProductionArr]);
+
   // Handle input changes and update the state
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target; // Extract name and value from the event
@@ -119,8 +151,6 @@ const PanelCreationForm = () => {
     e.preventDefault(); // Prevent default form submission behavior
     console.log("Form data submitted:", formData); // Log the form data
     setShowPopup(true); // Show the confirmation popup on form submission
-    // await dispatch(newBond(formData))
-    // navigate("/confirm", { state: { formData } });
   };
 
   return (
@@ -267,7 +297,7 @@ const PanelCreationForm = () => {
                   name="stimatedProduction"
                   className="form-control bg-form"
                   placeholder="E.g., 7 kWh"
-                  value={formData.stimatedProduction}
+                  value={formData.stimatedProduction ?? ''}
                   onChange={handleChange}
                 />
               </div>
@@ -283,9 +313,9 @@ const PanelCreationForm = () => {
             <button
               type="button"
               className="btn btn-back col-sm-2"
-              onClick={() => navigate("/admin-dash")}
+              onClick={() => navigate(-1)}
             >
-              Cancel
+              Back
             </button>
           </div>
         </form>

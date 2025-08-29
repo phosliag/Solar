@@ -72,11 +72,11 @@ function Lux() {
         )
       )}
 
-      <button
-        className="btn btn-back mt-4 w-100"
-        onClick={() => navigate(-1)}>
-        Back
-      </button>
+      <div className="d-flex justify-content-end w-100 position-absolute top-0 end-0 p-3" style={{ zIndex: 10 }}>
+        <button className="btn btn-back" onClick={() => navigate(-1)}>
+          Back
+        </button>
+      </div>
     </div>
   );
 }
